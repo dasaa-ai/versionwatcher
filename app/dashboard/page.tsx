@@ -1,32 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 
 type WatchItem = {
-  id: string; // uuid
-  user_id: string; // uuid
-  store: string; // "ios"
-  app_name: string;
-  app_store_id: string; // iOS App Store ID
-  country: string; // "ie"
+  id: string;
+  user_id: string;
+  store: string | null;
+  app_name: string | null;
+  app_store_id: string; // not-null in DB
+  country: string | null;
   last_version: string | null;
   last_checked_at: string | null;
   created_at: string;
 };
 
 type SubscriptionRow = {
-  status: string | null; // "active" | "trialing" | "canceled" | ...
+  status: string | null;
   stripe_price_id: string | null;
 };
 
 type AppSuggestion = {
-  appId?: string;     // our normalized id (if API already provides it)
-  trackId?: number;   // Apple iTunes Search API
-  id?: string | number;
+  appId: string; // from your /api/app-search mapping
   name: string;
-  version: string;
+  version?: string;
   iconUrl?: string;
 };
 
@@ -41,26 +39,49 @@ function planNameFromPriceId(priceId: string | null) {
 }
 
 function getPlanLimit(planName: string, status: string) {
-  // treat only active as paid (matches your current UX)
-  if (status === "active") {
-    if (planName === "Basic") return 5;
-    if (planName === "Pro") return Infinity;
-    return 1;
-  }
-  // Free
+  if (status !== "active") return 1; // Free behavior if not active
+  if (planName === "Basic") return 5;
+  if (planName === "Pro") return 999999; // practically unlimited
   return 1;
+}
+
+/**
+ * ✅ Important: Next.js requires useSearchParams() to be inside Suspense.
+ * We keep the banner behavior identical, just moved into this child.
+ */
+function BannerFromQuery({ onBanner }: { onBanner: (msg: string | null) => void }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+
+    if (success === "1") {
+      onBanner("✅ Payment successful! Your subscription is being activated. (May take a few seconds.)");
+    } else if (canceled === "1") {
+      onBanner("⚠️ Checkout canceled. You can try again anytime.");
+    }
+
+    if (success === "1" || canceled === "1") {
+      const t = setTimeout(() => {
+        router.replace("/dashboard");
+      }, 2500);
+      return () => clearTimeout(t);
+    }
+  }, [searchParams, router, onBanner]);
+
+  return null;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = useMemo(() => supabaseBrowser(), []);
 
   const [email, setEmail] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
 
   const [loading, setLoading] = useState(true);
-
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
   const [watchlist, setWatchlist] = useState<WatchItem[]>([]);
 
@@ -70,27 +91,8 @@ export default function DashboardPage() {
   const [selectedApp, setSelectedApp] = useState<AppSuggestion | null>(null);
   const [adding, setAdding] = useState(false);
 
-  // Banner (success/canceled)
+  // Banner
   const [banner, setBanner] = useState<string | null>(null);
-
-  // ✅ show success/canceled once, then remove it from URL
-  useEffect(() => {
-    const success = searchParams.get("success");
-    const canceled = searchParams.get("canceled");
-
-    if (success === "1") {
-      setBanner("✅ Payment successful! Your subscription is being activated. (May take a few seconds.)");
-    } else if (canceled === "1") {
-      setBanner("⚠️ Checkout canceled. You can try again anytime.");
-    }
-
-    if (success === "1" || canceled === "1") {
-      const t = setTimeout(() => {
-        router.replace("/dashboard");
-      }, 2500);
-      return () => clearTimeout(t);
-    }
-  }, [searchParams, router]);
 
   async function refreshAll() {
     setLoading(true);
@@ -115,7 +117,7 @@ export default function DashboardPage() {
 
     setSubscription((subRes.data as SubscriptionRow) || { status: null, stripe_price_id: null });
 
-    // watchlist (NEW SCHEMA)
+    // watchlist (NEW columns)
     const wlRes = await supabase
       .from("watchlist")
       .select("id,user_id,store,app_name,app_store_id,country,last_version,last_checked_at,created_at")
@@ -161,7 +163,6 @@ export default function DashboardPage() {
     window.location.href = data.url;
   }
 
-  // ✅ Billing Portal
   async function openBillingPortal() {
     if (!userId) return;
 
@@ -216,93 +217,97 @@ export default function DashboardPage() {
   }
 
   async function addSelectedApp() {
-  if (!selectedApp || adding) return;
+    if (!selectedApp || adding) return;
 
-  // Enforce plan limit in UI
-  const planName = planNameFromPriceId(subscription?.stripe_price_id ?? null);
-  const status = subscription?.status ?? "inactive";
-  const limit = getPlanLimit(planName, status);
+    // Enforce plan limit in UI
+    const planName = planNameFromPriceId(subscription?.stripe_price_id ?? null);
+    const status = subscription?.status ?? "inactive";
+    const limit = getPlanLimit(planName, status);
 
-  if (watchlist.length >= limit) {
-    if (planName === "Free") {
-      alert("Free plan allows only 1 app. Upgrade to add more.");
-    } else {
-      alert("You have reached your plan limit. Upgrade to add more apps.");
-    }
-    return;
-  }
-
-  setAdding(true);
-
-  try {
-    const { data: auth } = await supabase.auth.getUser();
-    const user = auth.user;
-
-    if (!user) {
-      router.push("/login");
+    if (watchlist.length >= limit) {
+      if (planName === "Free") alert("Free plan allows only 1 app. Upgrade to add more.");
+      else alert("You have reached your plan limit. Upgrade to add more apps.");
       return;
     }
 
-    // ✅ Robustly resolve the App Store ID (different shapes supported)
-    const appStoreIdRaw =
-      (selectedApp as any).app_store_id ??
-      (selectedApp as any).appId ??
-      (selectedApp as any).trackId ??
-      (selectedApp as any).id;
+    setAdding(true);
 
-    const appStoreId = appStoreIdRaw ? String(appStoreIdRaw) : "";
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const user = auth.user;
 
-    if (!appStoreId) {
-      alert(
-        "Could not add this app because its App Store ID is missing. Please re-select the app from the dropdown list and try again."
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      // Robustly resolve App Store ID
+      const appStoreIdRaw =
+        (selectedApp as any).app_store_id ??
+        (selectedApp as any).appId ??
+        (selectedApp as any).trackId ??
+        (selectedApp as any).id;
+
+      const appStoreId = appStoreIdRaw ? String(appStoreIdRaw) : "";
+
+      if (!appStoreId) {
+        alert(
+          "Could not add this app because its App Store ID is missing. Please re-select the app from the dropdown list and try again."
+        );
+        return;
+      }
+
+      // Optional: prevent duplicates (same app_store_id + same country)
+      const alreadyExists = watchlist.some(
+        (w) => String(w.app_store_id) === appStoreId && (w.country ?? "ie") === "ie"
       );
-      return;
-    }
+      if (alreadyExists) {
+        alert("This app is already in your watchlist.");
+        setSelectedApp(null);
+        setAppQuery("");
+        setSuggestions([]);
+        return;
+      }
 
-    // Optional: prevent duplicates (same user + same app_store_id + same country)
-    const alreadyExists = watchlist.some(
-      (w: any) => String(w.app_store_id) === appStoreId && (w.country ?? "ie") === "ie"
-    );
-    if (alreadyExists) {
-      alert("This app is already in your watchlist.");
+      const insertRes = await supabase.from("watchlist").insert({
+        user_id: user.id,
+        store: "ios",
+        app_name: selectedApp.name ?? null,
+        app_store_id: appStoreId, // ✅ never null
+        country: "ie",
+        last_version: selectedApp.version || null,
+        // last_checked_at stays null (checker updates it)
+      });
+
+      if (insertRes.error) {
+        alert(insertRes.error.message);
+        return;
+      }
+
       setSelectedApp(null);
       setAppQuery("");
       setSuggestions([]);
-      return;
+
+      await refreshAll();
+    } finally {
+      setAdding(false);
     }
-
-    const insertRes = await supabase.from("watchlist").insert({
-      user_id: user.id,
-      store: "ios",
-      app_name: selectedApp.name ?? null,
-      app_store_id: appStoreId, // ✅ never null now
-      country: "ie",
-      last_version: selectedApp.version || null,
-      // last_checked_at stays null (your checker sets it)
-    });
-
-    if (insertRes.error) {
-      alert(insertRes.error.message);
-      return;
-    }
-
-    setSelectedApp(null);
-    setAppQuery("");
-    setSuggestions([]);
-
-    await refreshAll();
-  } finally {
-    setAdding(false);
   }
-}
 
   const planName = planNameFromPriceId(subscription?.stripe_price_id ?? null);
   const status = subscription?.status ?? "inactive";
   const isPaidActive = status === "active";
   const showUpgradeButtons = !isPaidActive;
 
+  if (loading) return <div style={{ padding: 40 }}>Loading…</div>;
+
   return (
     <div style={{ padding: 28, maxWidth: 980, margin: "0 auto" }}>
+      {/* ✅ This fixes your Vercel build error */}
+      <Suspense fallback={null}>
+        <BannerFromQuery onBanner={setBanner} />
+      </Suspense>
+
       <h1 style={{ fontSize: 28, marginBottom: 8 }}>Dashboard</h1>
 
       <div style={{ opacity: 0.9, marginBottom: 18 }}>
@@ -465,7 +470,6 @@ export default function DashboardPage() {
                   alignItems: "center",
                 }}
               >
-                {/* ICON */}
                 <div
                   style={{
                     width: 34,
@@ -491,8 +495,8 @@ export default function DashboardPage() {
                   <div style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {s.name}
                   </div>
-                  <div style={{ fontSize: 13, opacity: 0.85 }}>
-                    ID: {s.appId} — Version: {s.version || "—"}
+                  <div style={{ fontSize: 12, opacity: 0.75 }}>
+                    ID: {s.appId} • Version: {s.version ?? "—"}
                   </div>
                 </div>
               </div>
@@ -500,44 +504,40 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div style={{ marginTop: 10, fontSize: 13, opacity: 0.7 }}>
+        <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
           Tip: Type a few letters and tap the correct app from the list.
         </div>
       </div>
 
       <hr style={{ opacity: 0.2, margin: "24px 0" }} />
 
-      <div>
-        <div style={{ fontSize: 18, marginBottom: 10 }}>Your Watchlist</div>
+      <div style={{ fontSize: 18, marginBottom: 10 }}>Your Watchlist</div>
 
-        {loading ? (
-          <div style={{ opacity: 0.8 }}>Loading…</div>
-        ) : watchlist.length === 0 ? (
-          <div style={{ opacity: 0.8 }}>No apps yet.</div>
-        ) : (
-          <div style={{ display: "grid", gap: 10 }}>
-            {watchlist.map((w) => (
-              <div
-                key={w.id}
-                style={{
-                  padding: 14,
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(0,0,0,0.2)",
-                }}
-              >
-                <b>{w.app_name}</b>
-                <div style={{ fontSize: 13, opacity: 0.9, marginTop: 6 }}>
-                  Store: {w.store} • Country: {w.country}
-                </div>
-                <div style={{ fontSize: 13, opacity: 0.9 }}>
-                  App Store ID: {w.app_store_id} • Last version: {w.last_version || "—"}
-                </div>
+      {watchlist.length === 0 ? (
+        <div style={{ opacity: 0.8 }}>No apps yet.</div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {watchlist.map((w) => (
+            <div
+              key={w.id}
+              style={{
+                border: "1px solid rgba(255,255,255,0.10)",
+                borderRadius: 12,
+                padding: 14,
+                background: "rgba(0,0,0,0.18)",
+              }}
+            >
+              <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 6 }}>{w.app_name || "Untitled App"}</div>
+              <div style={{ fontSize: 13, opacity: 0.8 }}>
+                Store: {w.store ?? "ios"} • Country: {w.country ?? "ie"}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <div style={{ fontSize: 13, opacity: 0.8 }}>
+                App Store ID: {w.app_store_id} • Last version: {w.last_version ?? "—"}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
