@@ -1,31 +1,31 @@
 "use client";
 
-import React, { Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
+
+type AppSuggestion = {
+  appId: string;
+  name: string;
+  version?: string | null;
+  iconUrl?: string | null;
+};
 
 type WatchItem = {
   id: string;
   user_id: string;
-  store: string | null;
+  app_store_id: string;
   app_name: string | null;
-  app_store_id: string; // not-null in DB
   country: string | null;
   last_version: string | null;
   last_checked_at: string | null;
-  created_at: string;
+  created_at: string | null;
 };
 
 type SubscriptionRow = {
+  user_id: string;
   status: string | null;
   stripe_price_id: string | null;
-};
-
-type AppSuggestion = {
-  appId: string; // from your /api/app-search mapping
-  name: string;
-  version?: string;
-  iconUrl?: string;
 };
 
 const PRICE_BASIC = process.env.NEXT_PUBLIC_STRIPE_PRICE_BASIC;
@@ -35,64 +35,43 @@ function planNameFromPriceId(priceId: string | null) {
   if (!priceId) return "Free";
   if (PRICE_PRO && priceId === PRICE_PRO) return "Pro";
   if (PRICE_BASIC && priceId === PRICE_BASIC) return "Basic";
-  return "Paid";
+  return "Free";
 }
 
 function getPlanLimit(planName: string, status: string) {
-  if (status !== "active") return 1; // Free behavior if not active
+  // Free / inactive users: 1
+  if (status !== "active") return 1;
+
+  if (planName === "Pro") return Infinity;
   if (planName === "Basic") return 5;
-  if (planName === "Pro") return 999999; // practically unlimited
+
   return 1;
-}
-
-/**
- * ✅ Important: Next.js requires useSearchParams() to be inside Suspense.
- * We keep the banner behavior identical, just moved into this child.
- */
-function BannerFromQuery({ onBanner }: { onBanner: (msg: string | null) => void }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const success = searchParams.get("success");
-    const canceled = searchParams.get("canceled");
-
-    if (success === "1") {
-      onBanner("✅ Payment successful! Your subscription is being activated. (May take a few seconds.)");
-    } else if (canceled === "1") {
-      onBanner("⚠️ Checkout canceled. You can try again anytime.");
-    }
-
-    if (success === "1" || canceled === "1") {
-      const t = setTimeout(() => {
-        router.replace("/dashboard");
-      }, 2500);
-      return () => clearTimeout(t);
-    }
-  }, [searchParams, router, onBanner]);
-
-  return null;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
-  const supabase = useMemo(() => supabaseBrowser(), []);
-
-  const [email, setEmail] = useState<string>("");
-  const [userId, setUserId] = useState<string>("");
+  const searchParams = useSearchParams();
+  const supabase = supabaseBrowser();
 
   const [loading, setLoading] = useState(true);
+
+  const [email, setEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
   const [watchlist, setWatchlist] = useState<WatchItem[]>([]);
 
-  // App search
   const [appQuery, setAppQuery] = useState("");
   const [suggestions, setSuggestions] = useState<AppSuggestion[]>([]);
   const [selectedApp, setSelectedApp] = useState<AppSuggestion | null>(null);
-  const [adding, setAdding] = useState(false);
 
-  // Banner
-  const [banner, setBanner] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  const [checkingNow, setCheckingNow] = useState(false);
+  const [checkNowMsg, setCheckNowMsg] = useState<string | null>(null);
+
+  const success = searchParams.get("success") === "true";
 
   async function refreshAll() {
     setLoading(true);
@@ -105,26 +84,21 @@ export default function DashboardPage() {
       return;
     }
 
-    setEmail(user.email || "");
+    setEmail(user.email ?? null);
     setUserId(user.id);
 
-    // subscription
-    const subRes = await supabase
-      .from("subscriptions")
-      .select("status, stripe_price_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const [watchRes, subRes] = await Promise.all([
+      supabase
+        .from("watchlist")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+      supabase.from("subscriptions").select("*").eq("user_id", user.id).maybeSingle(),
+    ]);
 
-    setSubscription((subRes.data as SubscriptionRow) || { status: null, stripe_price_id: null });
+    setWatchlist((watchRes.data as WatchItem[]) || []);
+    setSubscription((subRes.data as SubscriptionRow) || null);
 
-    // watchlist (NEW columns)
-    const wlRes = await supabase
-      .from("watchlist")
-      .select("id,user_id,store,app_name,app_store_id,country,last_version,last_checked_at,created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    setWatchlist((wlRes.data as WatchItem[]) || []);
     setLoading(false);
   }
 
@@ -155,6 +129,7 @@ export default function DashboardPage() {
     });
 
     const data = await res.json();
+
     if (!res.ok) {
       alert(data?.error || "Checkout failed");
       return;
@@ -173,6 +148,7 @@ export default function DashboardPage() {
     });
 
     const data = await res.json();
+
     if (!res.ok) {
       alert(data?.error || "Failed to open billing portal");
       return;
@@ -192,7 +168,6 @@ export default function DashboardPage() {
         return;
       }
 
-      // keep country fixed for now (you can make it a dropdown later)
       const res = await fetch(`/api/app-search?term=${encodeURIComponent(q)}&country=ie`);
       const data = await res.json();
       if (!active) return;
@@ -216,14 +191,20 @@ export default function DashboardPage() {
     setSuggestions([]);
   }
 
+  const planName = useMemo(
+    () => planNameFromPriceId(subscription?.stripe_price_id ?? null),
+    [subscription?.stripe_price_id]
+  );
+
+  const status = subscription?.status ?? "inactive";
+  const limit = getPlanLimit(planName, status);
+  const isPaidActive = status === "active";
+  const showUpgradeButtons = !isPaidActive;
+
   async function addSelectedApp() {
     if (!selectedApp || adding) return;
 
     // Enforce plan limit in UI
-    const planName = planNameFromPriceId(subscription?.stripe_price_id ?? null);
-    const status = subscription?.status ?? "inactive";
-    const limit = getPlanLimit(planName, status);
-
     if (watchlist.length >= limit) {
       if (planName === "Free") alert("Free plan allows only 1 app. Upgrade to add more.");
       else alert("You have reached your plan limit. Upgrade to add more apps.");
@@ -241,7 +222,7 @@ export default function DashboardPage() {
         return;
       }
 
-      // Robustly resolve App Store ID
+      // Robustly resolve App Store ID (different shapes supported)
       const appStoreIdRaw =
         (selectedApp as any).app_store_id ??
         (selectedApp as any).appId ??
@@ -257,26 +238,12 @@ export default function DashboardPage() {
         return;
       }
 
-      // Optional: prevent duplicates (same app_store_id + same country)
-      const alreadyExists = watchlist.some(
-        (w) => String(w.app_store_id) === appStoreId && (w.country ?? "ie") === "ie"
-      );
-      if (alreadyExists) {
-        alert("This app is already in your watchlist.");
-        setSelectedApp(null);
-        setAppQuery("");
-        setSuggestions([]);
-        return;
-      }
-
       const insertRes = await supabase.from("watchlist").insert({
         user_id: user.id,
-        store: "ios",
-        app_name: selectedApp.name ?? null,
-        app_store_id: appStoreId, // ✅ never null
+        app_store_id: appStoreId,
+        app_name: selectedApp.name,
         country: "ie",
         last_version: selectedApp.version || null,
-        // last_checked_at stays null (checker updates it)
       });
 
       if (insertRes.error) {
@@ -294,250 +261,343 @@ export default function DashboardPage() {
     }
   }
 
-  const planName = planNameFromPriceId(subscription?.stripe_price_id ?? null);
-  const status = subscription?.status ?? "inactive";
-  const isPaidActive = status === "active";
-  const showUpgradeButtons = !isPaidActive;
+  async function removeWatchItem(item: WatchItem) {
+    if (removingId) return;
 
-  if (loading) return <div style={{ padding: 40 }}>Loading…</div>;
+    setRemovingId(item.id);
+
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const user = auth.user;
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      const res = await supabase
+        .from("watchlist")
+        .delete()
+        .eq("id", item.id)
+        .eq("user_id", user.id);
+
+      if (res.error) {
+        alert(res.error.message);
+        return;
+      }
+
+      await refreshAll();
+    } finally {
+      setRemovingId(null);
+    }
+  }
+
+  async function checkUpdatesNow() {
+    if (checkingNow) return;
+
+    setCheckingNow(true);
+    setCheckNowMsg(null);
+
+    try {
+      const res = await fetch("/api/check-updates-now", { method: "POST" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data?.error || "Check failed");
+        return;
+      }
+
+      setCheckNowMsg(
+        `Checked ${data.checked}. Updated ${data.updated}. Emailed ${data.emailed}.`
+      );
+
+      // Refresh UI timestamps (last_checked_at etc.)
+      await refreshAll();
+    } finally {
+      setCheckingNow(false);
+    }
+  }
+
+  if (loading) return <p style={{ padding: 40 }}>Loading…</p>;
 
   return (
-    <div style={{ padding: 28, maxWidth: 980, margin: "0 auto" }}>
-      {/* ✅ This fixes your Vercel build error */}
-      <Suspense fallback={null}>
-        <BannerFromQuery onBanner={setBanner} />
-      </Suspense>
+    <main style={{ minHeight: "100vh", padding: 40, maxWidth: 900, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6 }}>Dashboard</h1>
+      <p style={{ marginTop: 0 }}>
+        Logged in as: <strong>{email}</strong>
+      </p>
 
-      <h1 style={{ fontSize: 28, marginBottom: 8 }}>Dashboard</h1>
-
-      <div style={{ opacity: 0.9, marginBottom: 18 }}>
-        Logged in as: <b>{email || "…"}</b>
-      </div>
-
-      {banner && (
+      {success && (
         <div
           style={{
-            border: "1px solid rgba(40, 255, 140, 0.35)",
-            background: "rgba(16, 110, 60, 0.25)",
-            padding: 14,
+            marginTop: 16,
+            padding: 12,
             borderRadius: 12,
-            marginBottom: 18,
+            background: "rgba(34,197,94,0.15)",
+            border: "1px solid rgba(34,197,94,0.35)",
           }}
         >
-          {banner}
+          ✅ Payment successful! Your subscription is active.
         </div>
       )}
 
-      <div
-        style={{
-          border: "1px solid rgba(120, 160, 255, 0.25)",
-          background: "rgba(20, 40, 90, 0.35)",
-          padding: 16,
-          borderRadius: 12,
-          marginBottom: 18,
-        }}
-      >
-        <div style={{ fontSize: 18, marginBottom: 6 }}>🚀 Current Plan: {planName}</div>
-        <div style={{ opacity: 0.9 }}>Status: {status}</div>
+      <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
+        <button
+          onClick={logout}
+          style={{
+            padding: "10px 14px",
+            borderRadius: 10,
+            border: "1px solid #0f172a",
+            background: "#0f172a",
+            color: "white",
+            cursor: "pointer",
+          }}
+        >
+          Logout
+        </button>
 
-        <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {showUpgradeButtons && (
-            <>
-              <button
-                onClick={() => startCheckout("basic")}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  background: "rgba(30, 60, 120, 0.55)",
-                  color: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Upgrade: Basic (€9/mo)
-              </button>
+        <button
+          onClick={checkUpdatesNow}
+          disabled={checkingNow}
+          style={{
+            padding: "10px 14px",
+            borderRadius: 10,
+            border: "1px solid #0f172a",
+            background: "white",
+            color: "#0f172a",
+            cursor: checkingNow ? "not-allowed" : "pointer",
+          }}
+        >
+          {checkingNow ? "Checking…" : "Check updates now"}
+        </button>
 
-              <button
-                onClick={() => startCheckout("pro")}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  background: "rgba(255,255,255,0.92)",
-                  color: "#111",
-                  cursor: "pointer",
-                }}
-              >
-                Upgrade: Pro (€19/mo)
-              </button>
-            </>
-          )}
-
-          {isPaidActive && (
-            <button
-              onClick={openBillingPortal}
-              style={{
-                padding: "10px 14px",
-                borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.15)",
-                background: "rgba(255, 255, 255, 0.1)",
-                color: "white",
-                cursor: "pointer",
-              }}
-            >
-              Manage Billing
-            </button>
-          )}
-
+        {isPaidActive && (
           <button
-            onClick={logout}
+            onClick={openBillingPortal}
             style={{
               padding: "10px 14px",
               borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: "rgba(30, 60, 120, 0.55)",
+              border: "1px solid #0f172a",
+              background: "white",
+              color: "#0f172a",
+              cursor: "pointer",
+            }}
+          >
+            Manage billing
+          </button>
+        )}
+      </div>
+
+      {checkNowMsg && (
+        <div
+          style={{
+            marginTop: 12,
+            padding: 12,
+            borderRadius: 12,
+            background: "rgba(59,130,246,0.12)",
+            border: "1px solid rgba(59,130,246,0.25)",
+          }}
+        >
+          {checkNowMsg}
+        </div>
+      )}
+
+      <hr style={{ margin: "22px 0" }} />
+
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+        <h2 style={{ margin: 0 }}>Your plan</h2>
+        <div style={{ color: "#334155" }}>
+          <strong>{planName}</strong> ({status}) • Apps: <strong>{watchlist.length}</strong> /{" "}
+          <strong>{limit === Infinity ? "∞" : limit}</strong>
+        </div>
+      </div>
+
+      {showUpgradeButtons && (
+        <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+          <button
+            onClick={() => startCheckout("basic")}
+            style={{
+              padding: "10px 14px",
+              borderRadius: 10,
+              border: "1px solid #0f172a",
+              background: "#0f172a",
               color: "white",
               cursor: "pointer",
             }}
           >
-            Log Out
+            Upgrade Basic (€9)
           </button>
-        </div>
-      </div>
-
-      <hr style={{ opacity: 0.2, margin: "24px 0" }} />
-
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 18, marginBottom: 8 }}>Add App</div>
-        <div style={{ fontSize: 14, opacity: 0.8, marginBottom: 10 }}>Search iOS app name</div>
-
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <input
-            value={appQuery}
-            onChange={(e) => {
-              setAppQuery(e.target.value);
-              setSelectedApp(null);
-            }}
-            placeholder="Type app name... (e.g., Instagram)"
-            style={{
-              width: 380,
-              padding: "10px 12px",
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.2)",
-              background: "rgba(0,0,0,0.25)",
-              color: "white",
-            }}
-          />
 
           <button
-            onClick={addSelectedApp}
-            disabled={!selectedApp || adding}
+            onClick={() => startCheckout("pro")}
             style={{
               padding: "10px 14px",
               borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: selectedApp ? "rgba(30, 60, 120, 0.55)" : "rgba(80,80,80,0.35)",
-              color: "white",
-              cursor: selectedApp ? "pointer" : "not-allowed",
+              border: "1px solid #0f172a",
+              background: "white",
+              color: "#0f172a",
+              cursor: "pointer",
             }}
           >
-            {adding ? "Adding…" : "Add"}
+            Upgrade Pro (€19)
           </button>
         </div>
+      )}
 
-        {/* Suggestions dropdown */}
-        {suggestions.length > 0 && !selectedApp && (
+      <hr style={{ margin: "22px 0" }} />
+
+      <h2 style={{ marginTop: 0 }}>Add an iOS app</h2>
+
+      <div style={{ position: "relative", maxWidth: 520 }}>
+        <input
+          value={appQuery}
+          onChange={(e) => {
+            setAppQuery(e.target.value);
+            setSelectedApp(null);
+          }}
+          placeholder="Search an app (e.g. Spotify)"
+          style={{
+            width: "100%",
+            padding: "12px 12px",
+            borderRadius: 10,
+            border: "1px solid #cbd5e1",
+            outline: "none",
+          }}
+        />
+
+        {suggestions.length > 0 && (
           <div
             style={{
-              marginTop: 10,
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 12,
+              position: "absolute",
+              zIndex: 20,
+              top: 46,
+              left: 0,
+              right: 0,
+              background: "white",
+              border: "1px solid #e2e8f0",
+              borderRadius: 10,
               overflow: "hidden",
-              maxWidth: 560,
-              background: "rgba(0,0,0,0.2)",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
             }}
           >
-            {suggestions.slice(0, 8).map((s, idx) => (
-              <div
-                key={`${s.appId}-${idx}`}
+            {suggestions.slice(0, 8).map((s) => (
+              <button
+                key={s.appId}
                 onClick={() => selectSuggestion(s)}
                 style={{
-                  padding: "10px 12px",
+                  width: "100%",
+                  textAlign: "left",
+                  padding: 10,
+                  border: "none",
+                  background: "white",
                   cursor: "pointer",
-                  borderBottom: "1px solid rgba(255,255,255,0.06)",
                   display: "flex",
-                  gap: 10,
                   alignItems: "center",
+                  gap: 10,
                 }}
               >
-                <div
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 8,
-                    overflow: "hidden",
-                    background: "rgba(255,255,255,0.08)",
-                    flex: "0 0 auto",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {s.iconUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.iconUrl} alt="" width={34} height={34} style={{ display: "block" }} />
-                  ) : (
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>📱</span>
-                  )}
-                </div>
-
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {s.name}
-                  </div>
-                  <div style={{ fontSize: 12, opacity: 0.75 }}>
-                    ID: {s.appId} • Version: {s.version ?? "—"}
+                {s.iconUrl ? (
+                  <img
+                    src={s.iconUrl}
+                    alt=""
+                    width={32}
+                    height={32}
+                    style={{ borderRadius: 8 }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      background: "#e2e8f0",
+                    }}
+                  />
+                )}
+                <div>
+                  <div style={{ fontWeight: 700 }}>{s.name}</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>
+                    {s.version ? `v${s.version}` : ""}
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
+      </div>
 
-        <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
-          Tip: Type a few letters and tap the correct app from the list.
+      <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <button
+          onClick={addSelectedApp}
+          disabled={!selectedApp || adding}
+          style={{
+            padding: "10px 14px",
+            borderRadius: 10,
+            border: "1px solid #0f172a",
+            background: "#0f172a",
+            color: "white",
+            cursor: !selectedApp || adding ? "not-allowed" : "pointer",
+          }}
+        >
+          {adding ? "Adding…" : "Add to watchlist"}
+        </button>
+
+        <div style={{ color: "#64748b", fontSize: 13, alignSelf: "center" }}>
+          Tip: select the app from the dropdown first.
         </div>
       </div>
 
-      <hr style={{ opacity: 0.2, margin: "24px 0" }} />
+      <hr style={{ margin: "22px 0" }} />
 
-      <div style={{ fontSize: 18, marginBottom: 10 }}>Your Watchlist</div>
+      <h2 style={{ marginTop: 0 }}>Your watchlist</h2>
 
       {watchlist.length === 0 ? (
-        <div style={{ opacity: 0.8 }}>No apps yet.</div>
+        <p style={{ color: "#64748b" }}>No apps yet. Add one above.</p>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "grid", gap: 10 }}>
           {watchlist.map((w) => (
             <div
               key={w.id}
               style={{
-                border: "1px solid rgba(255,255,255,0.10)",
+                border: "1px solid #e2e8f0",
                 borderRadius: 12,
-                padding: 14,
-                background: "rgba(0,0,0,0.18)",
+                padding: 12,
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                alignItems: "center",
+                flexWrap: "wrap",
               }}
             >
-              <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 6 }}>{w.app_name || "Untitled App"}</div>
-              <div style={{ fontSize: 13, opacity: 0.8 }}>
-                Store: {w.store ?? "ios"} • Country: {w.country ?? "ie"}
+              <div style={{ minWidth: 260 }}>
+                <div style={{ fontWeight: 800 }}>{w.app_name || "Unknown app"}</div>
+                <div style={{ fontSize: 13, color: "#64748b" }}>
+                  App Store ID: <span style={{ fontFamily: "monospace" }}>{w.app_store_id}</span>
+                  {w.last_version ? ` • last version: v${w.last_version}` : ""}
+                </div>
+                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
+                  Last checked: {w.last_checked_at ? new Date(w.last_checked_at).toLocaleString() : "—"}
+                </div>
               </div>
-              <div style={{ fontSize: 13, opacity: 0.8 }}>
-                App Store ID: {w.app_store_id} • Last version: {w.last_version ?? "—"}
-              </div>
+
+              <button
+                onClick={() => removeWatchItem(w)}
+                disabled={removingId === w.id}
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "1px solid rgba(239,68,68,0.45)",
+                  background: "rgba(239,68,68,0.08)",
+                  color: "#b91c1c",
+                  cursor: removingId === w.id ? "not-allowed" : "pointer",
+                }}
+              >
+                {removingId === w.id ? "Removing…" : "Remove"}
+              </button>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }
