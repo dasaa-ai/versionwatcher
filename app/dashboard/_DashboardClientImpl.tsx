@@ -275,11 +275,7 @@ export default function DashboardPage() {
         return;
       }
 
-      const res = await supabase
-        .from("watchlist")
-        .delete()
-        .eq("id", item.id)
-        .eq("user_id", user.id);
+      const res = await supabase.from("watchlist").delete().eq("id", item.id).eq("user_id", user.id);
 
       if (res.error) {
         alert(res.error.message);
@@ -307,9 +303,7 @@ export default function DashboardPage() {
         return;
       }
 
-      setCheckNowMsg(
-        `Checked ${data.checked}. Updated ${data.updated}. Emailed ${data.emailed}.`
-      );
+      setCheckNowMsg(`Checked ${data.checked}. Updated ${data.updated}. Emailed ${data.emailed}.`);
 
       // Refresh UI timestamps (last_checked_at etc.)
       await refreshAll();
@@ -347,8 +341,8 @@ export default function DashboardPage() {
           style={{
             padding: "10px 14px",
             borderRadius: 10,
-            border: "1px solid #0f172a",
-            background: "#0f172a",
+            border: "1px solid rgba(148,163,184,0.25)",
+            background: "rgba(15,23,42,0.85)",
             color: "white",
             cursor: "pointer",
           }}
@@ -362,10 +356,11 @@ export default function DashboardPage() {
           style={{
             padding: "10px 14px",
             borderRadius: 10,
-            border: "1px solid #0f172a",
-            background: "white",
+            border: "1px solid rgba(148,163,184,0.25)",
+            background: "rgba(248,250,252,0.95)",
             color: "#0f172a",
             cursor: checkingNow ? "not-allowed" : "pointer",
+            fontWeight: 700,
           }}
         >
           {checkingNow ? "Checking…" : "Check updates now"}
@@ -377,10 +372,11 @@ export default function DashboardPage() {
             style={{
               padding: "10px 14px",
               borderRadius: 10,
-              border: "1px solid #0f172a",
-              background: "white",
+              border: "1px solid rgba(148,163,184,0.25)",
+              background: "rgba(248,250,252,0.95)",
               color: "#0f172a",
               cursor: "pointer",
+              fontWeight: 700,
             }}
           >
             Manage billing
@@ -402,13 +398,27 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <hr style={{ margin: "22px 0" }} />
+      <hr style={{ margin: "22px 0", borderColor: "rgba(148,163,184,0.25)" }} />
 
       <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <h2 style={{ margin: 0 }}>Your plan</h2>
-        <div style={{ color: "#334155" }}>
-          <strong>{planName}</strong> ({status}) • Apps: <strong>{watchlist.length}</strong> /{" "}
-          <strong>{limit === Infinity ? "∞" : limit}</strong>
+
+        {/* High-contrast, bold+italic plan text */}
+        <div
+          style={{
+            color: "rgba(226,232,240,0.92)",
+            fontSize: 16,
+            fontWeight: 700,
+          }}
+        >
+          <span style={{ fontStyle: "italic", fontWeight: 800 }}>
+            {planName} ({status})
+          </span>{" "}
+          <span style={{ opacity: 0.9 }}>• Apps:</span>{" "}
+          <span style={{ fontStyle: "italic", fontWeight: 800 }}>{watchlist.length}</span> /{" "}
+          <span style={{ fontStyle: "italic", fontWeight: 800 }}>
+            {limit === Infinity ? "∞" : limit}
+          </span>
         </div>
       </div>
 
@@ -419,10 +429,11 @@ export default function DashboardPage() {
             style={{
               padding: "10px 14px",
               borderRadius: 10,
-              border: "1px solid #0f172a",
-              background: "#0f172a",
-              color: "white",
+              border: "1px solid rgba(148,163,184,0.25)",
+              background: "rgba(248,250,252,0.95)",
+              color: "#0f172a",
               cursor: "pointer",
+              fontWeight: 800,
             }}
           >
             Upgrade Basic (€9)
@@ -433,10 +444,11 @@ export default function DashboardPage() {
             style={{
               padding: "10px 14px",
               borderRadius: 10,
-              border: "1px solid #0f172a",
-              background: "white",
-              color: "#0f172a",
+              border: "1px solid rgba(248,250,252,0.55)",
+              background: "rgba(15,23,42,0.85)",
+              color: "rgba(248,250,252,0.95)",
               cursor: "pointer",
+              fontWeight: 800,
             }}
           >
             Upgrade Pro (€19)
@@ -444,12 +456,13 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <hr style={{ margin: "22px 0" }} />
+      <hr style={{ margin: "22px 0", borderColor: "rgba(148,163,184,0.25)" }} />
 
       <h2 style={{ marginTop: 0 }}>Add an iOS app</h2>
 
       <div style={{ position: "relative", maxWidth: 520 }}>
         <input
+          className="appSearchInput"
           value={appQuery}
           onChange={(e) => {
             setAppQuery(e.target.value);
@@ -460,11 +473,14 @@ export default function DashboardPage() {
             width: "100%",
             padding: "12px 12px",
             borderRadius: 10,
-            border: "1px solid #cbd5e1",
+            border: "1px solid rgba(148,163,184,0.25)",
             outline: "none",
+            background: "rgba(2,6,23,0.45)",
+            color: "rgba(248,250,252,0.95)",
           }}
         />
 
+        {/* Dark, high-contrast dropdown */}
         {suggestions.length > 0 && (
           <div
             style={{
@@ -473,50 +489,66 @@ export default function DashboardPage() {
               top: 46,
               left: 0,
               right: 0,
-              background: "white",
-              border: "1px solid #e2e8f0",
-              borderRadius: 10,
+              background: "rgba(2,6,23,0.98)",
+              border: "1px solid rgba(148,163,184,0.18)",
+              borderRadius: 12,
               overflow: "hidden",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+              boxShadow: "0 18px 60px rgba(0,0,0,0.50)",
+              backdropFilter: "blur(10px)",
             }}
           >
             {suggestions.slice(0, 8).map((s) => (
               <button
                 key={s.appId}
+                className="suggestionBtn"
                 onClick={() => selectSuggestion(s)}
                 style={{
                   width: "100%",
                   textAlign: "left",
-                  padding: 10,
+                  padding: 12,
                   border: "none",
-                  background: "white",
+                  background: "transparent",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
+                  color: "rgba(248,250,252,0.95)",
                 }}
               >
                 {s.iconUrl ? (
                   <img
                     src={s.iconUrl}
                     alt=""
-                    width={32}
-                    height={32}
-                    style={{ borderRadius: 8 }}
+                    width={34}
+                    height={34}
+                    style={{ borderRadius: 10 }}
                   />
                 ) : (
                   <div
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      background: "#e2e8f0",
+                      width: 34,
+                      height: 34,
+                      borderRadius: 10,
+                      background: "rgba(148,163,184,0.20)",
                     }}
                   />
                 )}
-                <div>
-                  <div style={{ fontWeight: 700 }}>{s.name}</div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>
+
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      color: "rgba(248,250,252,0.97)",
+                      lineHeight: 1.15,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      maxWidth: 430,
+                    }}
+                  >
+                    {s.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(148,163,184,0.95)", marginTop: 2 }}>
                     {s.version ? `v${s.version}` : ""}
                   </div>
                 </div>
@@ -533,33 +565,34 @@ export default function DashboardPage() {
           style={{
             padding: "10px 14px",
             borderRadius: 10,
-            border: "1px solid #0f172a",
-            background: "#0f172a",
+            border: "1px solid rgba(148,163,184,0.25)",
+            background: "rgba(15,23,42,0.85)",
             color: "white",
             cursor: !selectedApp || adding ? "not-allowed" : "pointer",
+            fontWeight: 800,
           }}
         >
           {adding ? "Adding…" : "Add to watchlist"}
         </button>
 
-        <div style={{ color: "#64748b", fontSize: 13, alignSelf: "center" }}>
+        <div style={{ color: "rgba(148,163,184,0.92)", fontSize: 13, alignSelf: "center" }}>
           Tip: select the app from the dropdown first.
         </div>
       </div>
 
-      <hr style={{ margin: "22px 0" }} />
+      <hr style={{ margin: "22px 0", borderColor: "rgba(148,163,184,0.25)" }} />
 
       <h2 style={{ marginTop: 0 }}>Your watchlist</h2>
 
       {watchlist.length === 0 ? (
-        <p style={{ color: "#64748b" }}>No apps yet. Add one above.</p>
+        <p style={{ color: "rgba(148,163,184,0.92)" }}>No apps yet. Add one above.</p>
       ) : (
         <div style={{ display: "grid", gap: 10 }}>
           {watchlist.map((w) => (
             <div
               key={w.id}
               style={{
-                border: "1px solid #e2e8f0",
+                border: "1px solid rgba(148,163,184,0.18)",
                 borderRadius: 12,
                 padding: 12,
                 display: "flex",
@@ -567,16 +600,21 @@ export default function DashboardPage() {
                 gap: 12,
                 alignItems: "center",
                 flexWrap: "wrap",
+                background: "rgba(2,6,23,0.25)",
               }}
             >
               <div style={{ minWidth: 260 }}>
                 <div style={{ fontWeight: 800 }}>{w.app_name || "Unknown app"}</div>
-                <div style={{ fontSize: 13, color: "#64748b" }}>
-                  App Store ID: <span style={{ fontFamily: "monospace" }}>{w.app_store_id}</span>
+                <div style={{ fontSize: 13, color: "rgba(148,163,184,0.95)" }}>
+                  App Store ID:{" "}
+                  <span style={{ fontFamily: "monospace", color: "rgba(226,232,240,0.92)" }}>
+                    {w.app_store_id}
+                  </span>
                   {w.last_version ? ` • last version: v${w.last_version}` : ""}
                 </div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
-                  Last checked: {w.last_checked_at ? new Date(w.last_checked_at).toLocaleString() : "—"}
+                <div style={{ fontSize: 12, color: "rgba(148,163,184,0.85)", marginTop: 4 }}>
+                  Last checked:{" "}
+                  {w.last_checked_at ? new Date(w.last_checked_at).toLocaleString() : "—"}
                 </div>
               </div>
 
@@ -587,9 +625,10 @@ export default function DashboardPage() {
                   padding: "10px 12px",
                   borderRadius: 10,
                   border: "1px solid rgba(239,68,68,0.45)",
-                  background: "rgba(239,68,68,0.08)",
-                  color: "#b91c1c",
+                  background: "rgba(239,68,68,0.10)",
+                  color: "rgba(248,113,113,0.95)",
                   cursor: removingId === w.id ? "not-allowed" : "pointer",
+                  fontWeight: 800,
                 }}
               >
                 {removingId === w.id ? "Removing…" : "Remove"}
@@ -598,7 +637,16 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
+
+      {/* Small CSS helpers for placeholder + hover */}
+      <style jsx>{`
+        .appSearchInput::placeholder {
+          color: rgba(148, 163, 184, 0.95);
+        }
+        .suggestionBtn:hover {
+          background: rgba(255, 255, 255, 0.06) !important;
+        }
+      `}</style>
     </main>
   );
 }
-
