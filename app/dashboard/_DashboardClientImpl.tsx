@@ -1,604 +1,524 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabaseBrowser";
-
-type AppSuggestion = {
-  appId: string;
-  name: string;
-  version?: string | null;
-  iconUrl?: string | null;
-};
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type WatchItem = {
   id: string;
   user_id: string;
-  app_store_id: string;
-  app_name: string | null;
+  app_id: string;
+  app_name: string;
   country: string | null;
   last_version: string | null;
   last_checked_at: string | null;
-  created_at: string | null;
 };
 
-type SubscriptionRow = {
-  user_id: string;
+type PlanStatus = {
   status: string | null;
   stripe_price_id: string | null;
 };
 
-const PRICE_BASIC = process.env.NEXT_PUBLIC_STRIPE_PRICE_BASIC;
-const PRICE_PRO = process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO;
+type AppStoreLookup = {
+  name: string;
+  version: string;
+  trackViewUrl: string;
+  artworkUrl100?: string;
+  appId: string;
+  country: string;
+};
 
-function planNameFromPriceId(priceId: string | null) {
-  if (!priceId) return "Free";
-  if (PRICE_PRO && priceId === PRICE_PRO) return "Pro";
-  if (PRICE_BASIC && priceId === PRICE_BASIC) return "Basic";
-  return "Free";
+const fmtDateTime = (iso: string | null | undefined) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString();
+};
+
+function appStoreButtonHtml(url: string) {
+  // Simple button for email HTML
+  return `
+    <div style="margin-top:14px">
+      <a href="${url}" style="
+        display:inline-block;
+        background:#2563eb;
+        color:#fff;
+        padding:10px 16px;
+        border-radius:10px;
+        font-weight:700;
+        text-decoration:none;
+      ">Open in App Store</a>
+    </div>
+  `;
 }
 
-function getPlanLimit(planName: string, status: string) {
-  // Free / inactive users: 1
-  if (status !== "active") return 1;
-
-  if (planName === "Pro") return Infinity;
-  if (planName === "Basic") return 5;
-
-  return 1;
-}
-
-export default function DashboardPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const supabase = supabaseBrowser();
-
-  const [loading, setLoading] = useState(true);
-
-  const [email, setEmail] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
+export default function DashboardClient() {
+  const [email, setEmail] = useState<string>("");
+  const [plan, setPlan] = useState<PlanStatus>({ status: null, stripe_price_id: null });
   const [watchlist, setWatchlist] = useState<WatchItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const [appQuery, setAppQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<AppSuggestion[]>([]);
-  const [selectedApp, setSelectedApp] = useState<AppSuggestion | null>(null);
+  // Add app search + suggestions
+  const [query, setQuery] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<AppStoreLookup[]>([]);
+  const [selected, setSelected] = useState<AppStoreLookup | null>(null);
+  const [suggestLoading, setSuggestLoading] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>("");
 
-  const [adding, setAdding] = useState(false);
-  const [removingId, setRemovingId] = useState<string | null>(null);
+  // “Check updates now”
+  const [checkNowBusy, setCheckNowBusy] = useState<boolean>(false);
 
-  const [checkingNow, setCheckingNow] = useState(false);
-  const [checkNowMsg, setCheckNowMsg] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const success = searchParams.get("success") === "true";
+  const planName = useMemo(() => {
+    if (plan.status === "pro") return "Pro";
+    if (plan.status === "basic") return "Basic";
+    return "Basic";
+  }, [plan.status]);
 
-  async function refreshAll() {
+  const status = useMemo(() => {
+    if (plan.status === "pro") return "active";
+    if (plan.status === "basic") return "inactive";
+    return "inactive";
+  }, [plan.status]);
+
+  const limit = useMemo(() => {
+    if (plan.status === "pro") return Infinity;
+    return 3;
+  }, [plan.status]);
+
+  const showUpgradeButtons = useMemo(() => {
+    return plan.status !== "pro";
+  }, [plan.status]);
+
+  async function refreshData() {
     setLoading(true);
+    setMessage("");
 
-    const { data: auth } = await supabase.auth.getUser();
-    const user = auth.user;
+    try {
+      // Fetch session
+      const sessRes = await fetch("/api/session", { method: "GET" });
+      const sessJson = await sessRes.json();
+      if (!sessRes.ok) {
+        setMessage(sessJson?.error || "Not authenticated");
+        setLoading(false);
+        return;
+      }
 
-    if (!user) {
-      router.push("/login");
-      return;
+      setEmail(sessJson?.email || "");
+
+      // Fetch subscription/plan
+      const subRes = await fetch("/api/subscription", { method: "GET" });
+      const subJson = await subRes.json();
+      if (subRes.ok) {
+        setPlan({
+          status: subJson?.status ?? "basic",
+          stripe_price_id: subJson?.stripe_price_id ?? null,
+        });
+      } else {
+        // fallback
+        setPlan({ status: "basic", stripe_price_id: null });
+      }
+
+      // Fetch watchlist
+      const wlRes = await fetch("/api/watchlist", { method: "GET" });
+      const wlJson = await wlRes.json();
+      if (wlRes.ok) {
+        setWatchlist(Array.isArray(wlJson?.items) ? wlJson.items : []);
+      } else {
+        setWatchlist([]);
+      }
+    } catch (e: any) {
+      setMessage(e?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
-
-    setEmail(user.email ?? null);
-    setUserId(user.id);
-
-    const [watchRes, subRes] = await Promise.all([
-      supabase
-        .from("watchlist")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false }),
-      supabase.from("subscriptions").select("*").eq("user_id", user.id).maybeSingle(),
-    ]);
-
-    setWatchlist((watchRes.data as WatchItem[]) || []);
-    setSubscription((subRes.data as SubscriptionRow) || null);
-
-    setLoading(false);
   }
 
   useEffect(() => {
-    refreshAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    refreshData();
   }, []);
 
-  async function logout() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
-
-  async function startCheckout(plan: "basic" | "pro") {
-    const priceId = plan === "basic" ? PRICE_BASIC : PRICE_PRO;
-
-    if (!priceId) {
-      alert(
-        `Missing ${plan.toUpperCase()} priceId in env.\n\nCheck .env.local has:\nNEXT_PUBLIC_STRIPE_PRICE_BASIC=price_...\nNEXT_PUBLIC_STRIPE_PRICE_PRO=price_...\n\nThen restart: npm run dev`
-      );
+  // Suggestions: debounce query
+  useEffect(() => {
+    if (!query || query.trim().length < 2) {
+      setSuggestions([]);
+      setSelected(null);
       return;
     }
 
+    const t = setTimeout(async () => {
+      try {
+        setSuggestLoading(true);
+        const res = await fetch(`/api/app-search?q=${encodeURIComponent(query.trim())}`, {
+          method: "GET",
+        });
+        const json = await res.json();
+        if (res.ok) {
+          setSuggestions(Array.isArray(json?.results) ? json.results : []);
+        } else {
+          setSuggestions([]);
+        }
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSuggestLoading(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(t);
+  }, [query]);
+
+  async function logout() {
+    await fetch("/api/logout", { method: "POST" });
+    window.location.href = "/login";
+  }
+
+  async function openBillingPortal() {
+    const res = await fetch("/api/billing-portal", { method: "POST" });
+    const json = await res.json();
+    if (res.ok && json?.url) {
+      window.location.href = json.url;
+    } else {
+      setMessage(json?.error || "Could not open billing portal");
+    }
+  }
+
+  async function upgrade(priceIdEnv: "NEXT_PUBLIC_STRIPE_PRICE_BASIC" | "NEXT_PUBLIC_STRIPE_PRICE_PRO") {
+    const priceId = process.env[priceIdEnv];
+    // NOTE: priceId is resolved at build time; backend route validates anyway.
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ priceId }),
     });
+    const json = await res.json();
+    if (res.ok && json?.url) {
+      window.location.href = json.url;
+    } else {
+      setMessage(json?.error || "Checkout failed");
+    }
+  }
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data?.error || "Checkout failed");
+  async function addToWatchlist() {
+    setMessage("");
+    if (!selected) {
+      setMessage("Tip: select the app from the dropdown first.");
       return;
     }
 
-    window.location.href = data.url;
-  }
-
-  async function openBillingPortal() {
-    if (!userId) return;
-
-    const res = await fetch("/api/billing-portal", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data?.error || "Failed to open billing portal");
+    if (limit !== Infinity && watchlist.length >= limit) {
+      setMessage(`Your plan allows up to ${limit} apps. Upgrade to Pro for unlimited.`);
       return;
     }
-
-    window.location.href = data.url;
-  }
-
-  // --- App search (typeahead)
-  useEffect(() => {
-    let active = true;
-
-    async function run() {
-      const q = appQuery.trim();
-      if (q.length < 2) {
-        setSuggestions([]);
-        return;
-      }
-
-      const res = await fetch(`/api/app-search?term=${encodeURIComponent(q)}&country=ie`);
-      const data = await res.json();
-      if (!active) return;
-
-      if (res.ok && Array.isArray(data?.results)) {
-        setSuggestions(data.results);
-      } else {
-        setSuggestions([]);
-      }
-    }
-
-    run();
-    return () => {
-      active = false;
-    };
-  }, [appQuery]);
-
-  function selectSuggestion(s: AppSuggestion) {
-    setSelectedApp(s);
-    setAppQuery(s.name);
-    setSuggestions([]);
-  }
-
-  const planName = useMemo(
-    () => planNameFromPriceId(subscription?.stripe_price_id ?? null),
-    [subscription?.stripe_price_id]
-  );
-
-  const status = subscription?.status ?? "inactive";
-  const limit = getPlanLimit(planName, status);
-  const isPaidActive = status === "active";
-  const showUpgradeButtons = !isPaidActive;
-
-  async function addSelectedApp() {
-    if (!selectedApp || adding) return;
-
-    // Enforce plan limit in UI
-    if (watchlist.length >= limit) {
-      if (planName === "Free") alert("Free plan allows only 1 app. Upgrade to add more.");
-      else alert("You have reached your plan limit. Upgrade to add more apps.");
-      return;
-    }
-
-    setAdding(true);
 
     try {
-      const { data: auth } = await supabase.auth.getUser();
-      const user = auth.user;
-
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-
-      // Robustly resolve App Store ID (different shapes supported)
-      const appStoreIdRaw =
-        (selectedApp as any).app_store_id ??
-        (selectedApp as any).appId ??
-        (selectedApp as any).trackId ??
-        (selectedApp as any).id;
-
-      const appStoreId = appStoreIdRaw ? String(appStoreIdRaw) : "";
-
-      if (!appStoreId) {
-        alert(
-          "Could not add this app because its App Store ID is missing. Please re-select the app from the dropdown list and try again."
-        );
-        return;
-      }
-
-      const insertRes = await supabase.from("watchlist").insert({
-        user_id: user.id,
-        app_store_id: appStoreId,
-        app_name: selectedApp.name,
-        country: "ie",
-        last_version: selectedApp.version || null,
+      const res = await fetch("/api/watchlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          app_id: selected.appId,
+          app_name: selected.name,
+          country: selected.country,
+        }),
       });
-
-      if (insertRes.error) {
-        alert(insertRes.error.message);
+      const json = await res.json();
+      if (!res.ok) {
+        setMessage(json?.error || "Could not add app");
         return;
       }
 
-      setSelectedApp(null);
-      setAppQuery("");
+      setQuery("");
+      setSelected(null);
       setSuggestions([]);
-
-      await refreshAll();
-    } finally {
-      setAdding(false);
+      await refreshData();
+      inputRef.current?.focus();
+    } catch (e: any) {
+      setMessage(e?.message || "Could not add app");
     }
   }
 
-  async function removeWatchItem(item: WatchItem) {
-    if (removingId) return;
-
-    setRemovingId(item.id);
-
+  async function removeFromWatchlist(itemId: string) {
+    setMessage("");
     try {
-      const { data: auth } = await supabase.auth.getUser();
-      const user = auth.user;
-
-      if (!user) {
-        router.push("/login");
+      const res = await fetch(`/api/watchlist?id=${encodeURIComponent(itemId)}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) {
+        setMessage(json?.error || "Could not remove app");
         return;
       }
-
-      const res = await supabase
-        .from("watchlist")
-        .delete()
-        .eq("id", item.id)
-        .eq("user_id", user.id);
-
-      if (res.error) {
-        alert(res.error.message);
-        return;
-      }
-
-      await refreshAll();
-    } finally {
-      setRemovingId(null);
+      await refreshData();
+    } catch (e: any) {
+      setMessage(e?.message || "Could not remove app");
     }
   }
 
   async function checkUpdatesNow() {
-    if (checkingNow) return;
-
-    setCheckingNow(true);
-    setCheckNowMsg(null);
-
+    setMessage("");
+    setCheckNowBusy(true);
     try {
       const res = await fetch("/api/check-updates-now", { method: "POST" });
-      const data = await res.json();
-
+      const json = await res.json();
       if (!res.ok) {
-        alert(data?.error || "Check failed");
+        setMessage(json?.error || "Check failed");
         return;
       }
 
-      setCheckNowMsg(
-        `Checked ${data.checked}. Updated ${data.updated}. Emailed ${data.emailed}.`
-      );
+      const checked = json?.checked ?? 0;
+      const updated = json?.updated ?? 0;
+      const emailed = json?.emailed ?? 0;
 
-      // Refresh UI timestamps (last_checked_at etc.)
-      await refreshAll();
+      setMessage(`Checked ${checked}. Updated ${updated}. Emailed ${emailed}.`);
+      await refreshData();
+    } catch (e: any) {
+      setMessage(e?.message || "Check failed");
     } finally {
-      setCheckingNow(false);
+      setCheckNowBusy(false);
     }
   }
 
-  if (loading) return <p style={{ padding: 40 }}>Loading…</p>;
+  const pageWrap: React.CSSProperties = {
+    minHeight: "100vh",
+    padding: "56px 22px",
+    color: "white",
+    background:
+      "radial-gradient(1200px 600px at 20% 0%, rgba(37,99,235,.25), rgba(0,0,0,0) 60%), #000",
+  };
+
+  const card: React.CSSProperties = {
+    border: "1px solid rgba(148,163,184,.25)",
+    borderRadius: 16,
+    padding: 22,
+    background: "rgba(2,6,23,.35)",
+    backdropFilter: "blur(6px)",
+  };
+
+  const button: React.CSSProperties = {
+    borderRadius: 12,
+    padding: "10px 16px",
+    border: "1px solid rgba(148,163,184,.28)",
+    background: "rgba(30,58,138,.55)",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: 700,
+  };
+
+  const whiteButton: React.CSSProperties = {
+    borderRadius: 12,
+    padding: "10px 16px",
+    border: "1px solid rgba(148,163,184,.28)",
+    background: "white",
+    color: "#0f172a",
+    cursor: "pointer",
+    fontWeight: 700,
+  };
+
+  if (loading) {
+    return (
+      <div style={pageWrap}>
+        <div style={{ maxWidth: 980, margin: "0 auto" }}>
+          <div style={card}>Loading dashboard…</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <main style={{ minHeight: "100vh", padding: 40, maxWidth: 900, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6 }}>Dashboard</h1>
-      <p style={{ marginTop: 0 }}>
-        Logged in as: <strong>{email}</strong>
-      </p>
-
-      {success && (
-        <div
-          style={{
-            marginTop: 16,
-            padding: 12,
-            borderRadius: 12,
-            background: "rgba(34,197,94,0.15)",
-            border: "1px solid rgba(34,197,94,0.35)",
-          }}
-        >
-          ✅ Payment successful! Your subscription is active.
+    <div style={pageWrap}>
+      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+        <h1 style={{ margin: 0, fontSize: 56, letterSpacing: -1 }}>Dashboard</h1>
+        <div style={{ marginTop: 8, opacity: 0.85 }}>
+          Logged in as: <strong>{email}</strong>
         </div>
-      )}
 
-      <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
-        <button
-          onClick={logout}
-          style={{
-            padding: "10px 14px",
-            borderRadius: 10,
-            border: "1px solid #0f172a",
-            background: "#0f172a",
-            color: "white",
-            cursor: "pointer",
-          }}
-        >
-          Logout
-        </button>
+        <div style={{ marginTop: 22, display: "flex", gap: 14, flexWrap: "wrap" }}>
+          <button onClick={logout} style={button}>
+            Logout
+          </button>
 
-        <button
-          onClick={checkUpdatesNow}
-          disabled={checkingNow}
-          style={{
-            padding: "10px 14px",
-            borderRadius: 10,
-            border: "1px solid #0f172a",
-            background: "white",
-            color: "#0f172a",
-            cursor: checkingNow ? "not-allowed" : "pointer",
-          }}
-        >
-          {checkingNow ? "Checking…" : "Check updates now"}
-        </button>
+          <button onClick={checkUpdatesNow} style={whiteButton} disabled={checkNowBusy}>
+            {checkNowBusy ? "Checking…" : "Check updates now"}
+          </button>
 
-        {isPaidActive && (
-          <button
-            onClick={openBillingPortal}
-            style={{
-              padding: "10px 14px",
-              borderRadius: 10,
-              border: "1px solid #0f172a",
-              background: "white",
-              color: "#0f172a",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={openBillingPortal} style={whiteButton}>
             Manage billing
           </button>
-        )}
-      </div>
-
-      {checkNowMsg && (
-        <div
-          style={{
-            marginTop: 12,
-            padding: 12,
-            borderRadius: 12,
-            background: "rgba(59,130,246,0.12)",
-            border: "1px solid rgba(59,130,246,0.25)",
-          }}
-        >
-          {checkNowMsg}
         </div>
-      )}
 
-      <hr style={{ margin: "22px 0" }} />
-
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
-        <h2 style={{ margin: 0 }}>Your plan</h2>
-        <div style={{ color: "#334155" }}>
-          <strong>{planName}</strong> ({status}) • Apps: <strong>{watchlist.length}</strong> /{" "}
-          <strong>{limit === Infinity ? "∞" : limit}</strong>
-        </div>
-      </div>
-
-      {showUpgradeButtons && (
-        <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
-          <button
-            onClick={() => startCheckout("basic")}
-            style={{
-              padding: "10px 14px",
-              borderRadius: 10,
-              border: "1px solid #0f172a",
-              background: "#0f172a",
-              color: "white",
-              cursor: "pointer",
-            }}
-          >
-            Upgrade Basic (€9)
-          </button>
-
-          <button
-            onClick={() => startCheckout("pro")}
-            style={{
-              padding: "10px 14px",
-              borderRadius: 10,
-              border: "1px solid #0f172a",
-              background: "white",
-              color: "#0f172a",
-              cursor: "pointer",
-            }}
-          >
-            Upgrade Pro (€19)
-          </button>
-        </div>
-      )}
-
-      <hr style={{ margin: "22px 0" }} />
-
-      <h2 style={{ marginTop: 0 }}>Add an iOS app</h2>
-
-      <div style={{ position: "relative", maxWidth: 520 }}>
-        <input
-          value={appQuery}
-          onChange={(e) => {
-            setAppQuery(e.target.value);
-            setSelectedApp(null);
-          }}
-          placeholder="Search an app (e.g. Spotify)"
-          style={{
-            width: "100%",
-            padding: "12px 12px",
-            borderRadius: 10,
-            border: "1px solid #cbd5e1",
-            outline: "none",
-          }}
-        />
-
-        {suggestions.length > 0 && (
-          <div
-            style={{
-              position: "absolute",
-              zIndex: 20,
-              top: 46,
-              left: 0,
-              right: 0,
-              background: "white",
-              border: "1px solid #e2e8f0",
-              borderRadius: 10,
-              overflow: "hidden",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-            }}
-          >
-            {suggestions.slice(0, 8).map((s) => (
-              <button
-                key={s.appId}
-                onClick={() => selectSuggestion(s)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: 10,
-                  border: "none",
-                  background: "white",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                }}
-              >
-                {s.iconUrl ? (
-                  <img
-                    src={s.iconUrl}
-                    alt=""
-                    width={32}
-                    height={32}
-                    style={{ borderRadius: 8 }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      background: "#e2e8f0",
-                    }}
-                  />
-                )}
-                <div>
-                  <div style={{ fontWeight: 700 }}>{s.name}</div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>
-                    {s.version ? `v${s.version}` : ""}
-                  </div>
-                </div>
-              </button>
-            ))}
+        {message && (
+          <div style={{ marginTop: 16, ...card, padding: 16, borderRadius: 14 }}>
+            {message}
           </div>
         )}
-      </div>
 
-      <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <button
-          onClick={addSelectedApp}
-          disabled={!selectedApp || adding}
-          style={{
-            padding: "10px 14px",
-            borderRadius: 10,
-            border: "1px solid #0f172a",
-            background: "#0f172a",
-            color: "white",
-            cursor: !selectedApp || adding ? "not-allowed" : "pointer",
-          }}
-        >
-          {adding ? "Adding…" : "Add to watchlist"}
-        </button>
+        <hr style={{ margin: "22px 0" }} />
 
-        <div style={{ color: "#64748b", fontSize: 13, alignSelf: "center" }}>
-          Tip: select the app from the dropdown first.
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+          <h2 style={{ margin: 0 }}>Your plan</h2>
+          <div style={{ color: "#e2e8f0", fontStyle: "italic", fontWeight: 600 }}>
+            <strong>{planName}</strong> ({status}) • Apps: <strong>{watchlist.length}</strong> /{" "}
+            <strong>{limit === Infinity ? "∞" : limit}</strong>
+          </div>
         </div>
-      </div>
 
-      <hr style={{ margin: "22px 0" }} />
+        {showUpgradeButtons && (
+          <div style={{ marginTop: 14, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button onClick={() => upgrade("NEXT_PUBLIC_STRIPE_PRICE_BASIC")} style={whiteButton}>
+              Upgrade to Basic
+            </button>
+            <button onClick={() => upgrade("NEXT_PUBLIC_STRIPE_PRICE_PRO")} style={whiteButton}>
+              Upgrade to Pro
+            </button>
+          </div>
+        )}
 
-      <h2 style={{ marginTop: 0 }}>Your watchlist</h2>
+        <hr style={{ margin: "22px 0" }} />
 
-      {watchlist.length === 0 ? (
-        <p style={{ color: "#64748b" }}>No apps yet. Add one above.</p>
-      ) : (
-        <div style={{ display: "grid", gap: 10 }}>
-          {watchlist.map((w) => (
-            <div
-              key={w.id}
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 12,
-                padding: 12,
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 12,
-                alignItems: "center",
-                flexWrap: "wrap",
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Add an iOS app</h3>
+
+          <div style={{ position: "relative", maxWidth: 640 }}>
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSelected(null);
               }}
-            >
-              <div style={{ minWidth: 260 }}>
-                <div style={{ fontWeight: 800 }}>{w.app_name || "Unknown app"}</div>
-                <div style={{ fontSize: 13, color: "#64748b" }}>
-                  App Store ID: <span style={{ fontFamily: "monospace" }}>{w.app_store_id}</span>
-                  {w.last_version ? ` • last version: v${w.last_version}` : ""}
-                </div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
-                  Last checked: {w.last_checked_at ? new Date(w.last_checked_at).toLocaleString() : "—"}
-                </div>
-              </div>
+              placeholder="Search an app (e.g. Spotify)"
+              style={{
+                width: "100%",
+                padding: "12px 14px",
+                borderRadius: 12,
+                border: "1px solid rgba(148,163,184,.35)",
+                background: "rgba(2,6,23,.45)",
+                color: "white",
+                outline: "none",
+              }}
+            />
 
-              <button
-                onClick={() => removeWatchItem(w)}
-                disabled={removingId === w.id}
+            {suggestLoading && (
+              <div style={{ position: "absolute", top: 46, right: 12, opacity: 0.7, fontSize: 12 }}>
+                Searching…
+              </div>
+            )}
+
+            {suggestions.length > 0 && !selected && (
+              <div
                 style={{
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  border: "1px solid rgba(239,68,68,0.45)",
-                  background: "rgba(239,68,68,0.08)",
-                  color: "#b91c1c",
-                  cursor: removingId === w.id ? "not-allowed" : "pointer",
+                  position: "absolute",
+                  top: 52,
+                  left: 0,
+                  right: 0,
+                  zIndex: 20,
+                  borderRadius: 14,
+                  border: "1px solid rgba(148,163,184,.25)",
+                  overflow: "hidden",
+                  background: "white",
                 }}
               >
-                {removingId === w.id ? "Removing…" : "Remove"}
-              </button>
+                {suggestions.slice(0, 8).map((s) => (
+                  <button
+                    key={s.trackViewUrl}
+                    onClick={() => {
+                      setSelected(s);
+                      setQuery(s.name);
+                      setSuggestions([]);
+                    }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      border: "none",
+                      borderBottom: "1px solid rgba(15,23,42,.08)",
+                      background: "white",
+                      color: "#0f172a",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    <img
+                      src={s.artworkUrl100 || ""}
+                      alt=""
+                      style={{ width: 34, height: 34, borderRadius: 8, background: "#f1f5f9" }}
+                    />
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <div style={{ fontWeight: 700, color: "#0f172a" }}>{s.name}</div>
+                      <div style={{ fontSize: 12, color: "#334155" }}>v{s.version}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginTop: 14, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <button onClick={addToWatchlist} style={button}>
+              Add to watchlist
+            </button>
+            <div style={{ opacity: 0.75, fontSize: 13 }}>
+              Tip: select the app from the dropdown first.
             </div>
-          ))}
+          </div>
         </div>
-      )}
-    </main>
+
+        <hr style={{ margin: "22px 0" }} />
+
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Your watchlist</h3>
+
+          {watchlist.length === 0 ? (
+            <div style={{ opacity: 0.8 }}>No apps yet. Add one above.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {watchlist.map((w) => (
+                <div
+                  key={w.id}
+                  style={{
+                    border: "1px solid rgba(148,163,184,.25)",
+                    borderRadius: 14,
+                    padding: 14,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 14,
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 800 }}>{w.app_name}</div>
+                    <div style={{ marginTop: 6, opacity: 0.75, fontSize: 13 }}>
+                      App Store ID: <strong>{w.app_id}</strong> • last version:{" "}
+                      <strong>{w.last_version || "—"}</strong>
+                    </div>
+                    <div style={{ marginTop: 4, opacity: 0.75, fontSize: 13 }}>
+                      Last checked: <strong>{fmtDateTime(w.last_checked_at)}</strong>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => removeFromWatchlist(w.id)}
+                    style={{
+                      borderRadius: 12,
+                      padding: "10px 16px",
+                      border: "1px solid rgba(239,68,68,.45)",
+                      background: "rgba(0,0,0,.35)",
+                      color: "#ef4444",
+                      cursor: "pointer",
+                      fontWeight: 800,
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ marginTop: 26, opacity: 0.6, fontSize: 12 }}>
+          Emails include an “Open in App Store” button: {appStoreButtonHtml("https://apps.apple.com")}
+        </div>
+      </div>
+    </div>
   );
 }
-
