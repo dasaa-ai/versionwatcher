@@ -1,64 +1,89 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+
+type AppStoreLookup = {
+  name: string;
+  version: string;
+  trackViewUrl: string;
+  artworkUrl100?: string;
+  appId: string;
+  country: string;
+};
 
 type SubscriptionRow = {
   user_id: string;
   status: string | null;
-  price_id: string | null;
+  stripe_price_id: string | null;
 };
+
+async function fetchAppDetails(appId: string, country: string): Promise<AppStoreLookup | null> {
+  const safeCountry = (country || "us").toLowerCase();
+
+  const res = await fetch(
+    `https://itunes.apple.com/lookup?id=${encodeURIComponent(appId)}&country=${encodeURIComponent(
+      safeCountry
+    )}`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  const app = data?.results?.[0];
+  if (!app?.version) return null;
+
+  return {
+    name: app.trackName ?? "Unknown app",
+    version: app.version,
+    trackViewUrl: app.trackViewUrl ?? "",
+    artworkUrl100: app.artworkUrl100 ?? "",
+    appId: String(app.trackId ?? appId),
+    country: safeCountry,
+  };
+}
 
 function getPlanLimitForUser(
   sub: SubscriptionRow | null,
   PRICE_BASIC?: string,
   PRICE_PRO?: string
-): number {
-  if (!sub || sub.status !== "active") return 2; // Free
-  if (sub.price_id === PRICE_PRO) return Infinity; // Pro
-  if (sub.price_id === PRICE_BASIC) return 5; // Basic
-  return 2;
-}
+) {
+  if (!sub || sub.status !== "active") return 1;
 
-async function fetchAppDetails(appId: string, country = "us") {
-  try {
-    const url = `https://itunes.apple.com/lookup?id=${encodeURIComponent(
-      appId
-    )}&country=${encodeURIComponent(country)}`;
+  if (sub.stripe_price_id && PRICE_PRO && sub.stripe_price_id === PRICE_PRO) return Infinity;
+  if (sub.stripe_price_id && PRICE_BASIC && sub.stripe_price_id === PRICE_BASIC) return 5;
 
-    const resp = await fetch(url, { cache: "no-store" });
-    if (!resp.ok) return null;
-
-    const data = await resp.json();
-    const app = data?.results?.[0];
-    if (!app) return null;
-
-    return {
-      name: app.trackName as string,
-      version: app.version as string,
-      trackViewUrl: app.trackViewUrl as string | undefined,
-    };
-  } catch (e) {
-    console.error("fetchAppDetails failed:", e);
-    return null;
-  }
+  // Active but unknown price id → safest downgrade behavior
+  return 1;
 }
 
 function appStoreButtonHtml(url: string) {
   return `
-    <a href="${url}" target="_blank" rel="noopener noreferrer"
-       style="display:inline-block;padding:12px 18px;background:#2563eb;color:#fff;
-              border-radius:10px;text-decoration:none;font-weight:600;">
+    <a href="${url}"
+       style="
+         display:inline-block;
+         padding:12px 16px;
+         border-radius:10px;
+         text-decoration:none;
+         font-weight:600;
+         background:#2563eb;
+         color:white;
+       ">
       Open in App Store
     </a>
   `;
 }
 
 // Accept either:
-// 1) Authorization: Bearer <CRON_SECRET>   (Vercel Cron secret approach) :contentReference[oaicite:2]{index=2}
-// 2) x-cron-secret: <CRON_SECRET>          (your legacy/manual curl approach)
+// 1) Authorization: Bearer <CRON_SECRET>   (Vercel Cron secret approach)
+// 2) x-cron-secret: <CRON_SECRET>          (legacy/manual curl approach)
 function isAuthorized(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
+
   if (!secret) {
-    // If you haven't set CRON_SECRET yet, don't block (but you SHOULD set it in prod).
+    // If CRON_SECRET isn't set, don't block.
+    // But you should keep it set in production.
     return true;
   }
 
@@ -81,17 +106,18 @@ async function runCheckUpdates(req: NextRequest) {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
   const headers = {
     apikey: serviceRoleKey,
     Authorization: `Bearer ${serviceRoleKey}`,
     "Content-Type": "application/json",
   };
 
-  const PRICE_BASIC = process.env.STRIPE_PRICE_BASIC;
-  const PRICE_PRO = process.env.STRIPE_PRICE_PRO;
+  const PRICE_BASIC = process.env.NEXT_PUBLIC_STRIPE_PRICE_BASIC;
+  const PRICE_PRO = process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO;
 
   const resendKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.EMAIL_FROM || "Versionwatcher <updates@versionwatcher.com>";
+  const fromEmail = process.env.ALERT_FROM_EMAIL || "Updates <onboarding@resend.dev>";
   const resend = resendKey ? new Resend(resendKey) : null;
 
   // 1) Load watchlist
@@ -99,21 +125,25 @@ async function runCheckUpdates(req: NextRequest) {
     headers,
     cache: "no-store",
   });
+
   if (!watchlistResp.ok) {
     const t = await watchlistResp.text();
-    return NextResponse.json({ ok: false, error: t }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Failed to read watchlist", details: t }, { status: 500 });
   }
+
   const watchlistRows = await watchlistResp.json();
 
   // 2) Load profiles (emails)
-  const profilesResp = await fetch(
-    `${supabaseUrl}/rest/v1/profiles?select=id,email`,
-    { headers, cache: "no-store" }
-  );
+  const profilesResp = await fetch(`${supabaseUrl}/rest/v1/profiles?select=id,email`, {
+    headers,
+    cache: "no-store",
+  });
+
   if (!profilesResp.ok) {
     const t = await profilesResp.text();
-    return NextResponse.json({ ok: false, error: t }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Failed to read profiles", details: t }, { status: 500 });
   }
+
   const profiles = await profilesResp.json();
 
   const emailByUserId = new Map<string, string>();
@@ -123,13 +153,15 @@ async function runCheckUpdates(req: NextRequest) {
 
   // 3) Load subscriptions
   const subsResp = await fetch(
-    `${supabaseUrl}/rest/v1/subscriptions?select=user_id,status,price_id`,
+    `${supabaseUrl}/rest/v1/subscriptions?select=user_id,status,stripe_price_id`,
     { headers, cache: "no-store" }
   );
+
   if (!subsResp.ok) {
     const t = await subsResp.text();
-    return NextResponse.json({ ok: false, error: t }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Failed to read subscriptions", details: t }, { status: 500 });
   }
+
   const subs: SubscriptionRow[] = await subsResp.json();
 
   const subByUserId = new Map<string, SubscriptionRow>();
@@ -258,7 +290,7 @@ async function runCheckUpdates(req: NextRequest) {
   });
 }
 
-// ✅ Vercel Cron uses GET :contentReference[oaicite:3]{index=3}
+// Vercel Cron uses GET
 export async function GET(req: NextRequest) {
   return runCheckUpdates(req);
 }
