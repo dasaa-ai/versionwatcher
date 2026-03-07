@@ -125,7 +125,7 @@ export default function HomePage() {
               }}
             >
               Add the iPhone apps you care about and VersionWatcher emails you
-              when a new version goes live. Perfect for founders, PMs, QA teams,
+              when a new version goes live. Perfect for individuals, founders, PMs, QA teams,
               agencies, ASO specialists, and anyone tracking competitor moves.
             </p>
 
@@ -250,6 +250,7 @@ export default function HomePage() {
                   ["ASO teams", "Catch release changes the moment they happen"],
                   ["Agencies", "Monitor dozens of client and competitor apps"],
                   ["QA / founders", "Know exactly when a tracked app ships"],
+                  ["Individuals", "Never miss an app update again"],
                 ].map(([title, desc]) => (
                   <div
                     key={title}
@@ -351,7 +352,6 @@ export default function HomePage() {
               Three simple steps.
             </h2>
             <p style={{ color: "rgba(226,232,240,.82)", fontSize: 18, lineHeight: 1.7 }}>
-              Marc Lou style means keeping the product dead simple to understand.
               Add apps. We monitor versions. You get the signal.
             </p>
           </div>
