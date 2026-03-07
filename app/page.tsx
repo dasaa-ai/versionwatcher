@@ -640,53 +640,53 @@ export default function HomePage() {
         </footer>
       </section>
 
-      <style jsx>{`
-        .heroGrid,
-        .whyGrid,
-        .stepsGrid,
-        .pricingGrid,
-        .liveGrid {
-          display: grid;
-          gap: 18px;
-        }
+      <style>{`
+  .heroGrid,
+  .whyGrid,
+  .stepsGrid,
+  .pricingGrid,
+  .liveGrid {
+    display: grid;
+    gap: 18px;
+  }
 
-        .heroGrid {
-          grid-template-columns: 1.1fr 0.9fr;
-          gap: 36px;
-          align-items: center;
-        }
+  .heroGrid {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 36px;
+    align-items: center;
+  }
 
-        .whyGrid,
-        .stepsGrid,
-        .pricingGrid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
+  .whyGrid,
+  .stepsGrid,
+  .pricingGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 
-        .liveGrid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
+  .liveGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-        @media (max-width: 980px) {
-          .heroGrid,
-          .whyGrid,
-          .stepsGrid,
-          .pricingGrid,
-          .liveGrid {
-            grid-template-columns: 1fr;
-          }
-        }
+  @media (max-width: 980px) {
+    .heroGrid,
+    .whyGrid,
+    .stepsGrid,
+    .pricingGrid,
+    .liveGrid {
+      grid-template-columns: 1fr;
+    }
+  }
 
-        @media (max-width: 780px) {
-          .useCaseRow {
-            flex-direction: column;
-            align-items: flex-start;
-          }
+  @media (max-width: 780px) {
+    .useCaseRow {
+      flex-direction: column;
+      align-items: flex-start;
+    }
 
-          .useCaseRow > div:last-child {
-            text-align: left !important;
-          }
-        }
-      `}</style>
+    .useCaseRow > div:last-child {
+      text-align: left !important;
+    }
+  }
+`}</style>
     </main>
   );
 }
