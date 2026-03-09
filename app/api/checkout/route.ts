@@ -13,7 +13,6 @@ export async function POST(req: Request) {
 
     const cookieStore = await cookies();
 
-    // Supabase server client (App Router compatible)
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL as string,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
@@ -23,7 +22,6 @@ export async function POST(req: Request) {
             return cookieStore.getAll();
           },
           setAll(cookiesToSet) {
-            // In route handlers you can set cookies on the response
             cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
             });
@@ -43,7 +41,10 @@ export async function POST(req: Request) {
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-    const baseUrl = process.env.APP_BASE_URL || "http://localhost:3000";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.APP_BASE_URL ||
+      "https://www.versionwatcher.com";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -51,7 +52,6 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/dashboard?success=1`,
       cancel_url: `${baseUrl}/dashboard?canceled=1`,
-      // Optional, but recommended for webhook linking:
       metadata: {
         user_id: user.id,
       },
