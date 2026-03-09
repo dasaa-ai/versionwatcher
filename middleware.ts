@@ -21,12 +21,11 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  // Important: this refreshes the session cookie if needed
   await supabase.auth.getUser();
 
   return res;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
