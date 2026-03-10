@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const baseUrl = process.env.APP_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.APP_BASE_URL || "https://www.versionwatcher.com/dashboard";
 
     const session = await stripe.billingPortal.sessions.create({
       customer: sub.stripe_customer_id,
