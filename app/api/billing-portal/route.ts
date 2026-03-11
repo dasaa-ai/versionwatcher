@@ -1,48 +1,48 @@
-import { NextResponse } from "next/server";
-import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server"
+import Stripe from "stripe"
+import { createClient } from "@supabase/supabase-js"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await req.json();
-
-    if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
-    }
-
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL as string,
       process.env.SUPABASE_SERVICE_ROLE_KEY as string
-    );
+    )
 
-    const { data: sub, error } = await supabase
-      .from("subscriptions")
-      .select("stripe_customer_id")
-      .eq("user_id", userId)
-      .single();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    if (error || !sub?.stripe_customer_id) {
-      return NextResponse.json(
-        { error: "No Stripe customer found for this user" },
-        { status: 404 }
-      );
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const baseUrl = process.env.APP_BASE_URL || "https://www.versionwatcher.com/dashboard";
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", user.id)
+      .single()
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: sub.stripe_customer_id,
-      return_url: `${baseUrl}/dashboard`,
-    });
+    if (error || !profile?.stripe_customer_id) {
+      return NextResponse.json(
+        { error: "Stripe customer not found" },
+        { status: 400 }
+      )
+    }
 
-    return NextResponse.json({ url: session.url });
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: profile.stripe_customer_id,
+      return_url: "https://www.versionwatcher.com/dashboard",
+    })
+
+    return NextResponse.json({ url: portalSession.url })
   } catch (err) {
-    console.error("Billing portal error:", err);
+    console.error("Billing portal error:", err)
     return NextResponse.json(
       { error: "Failed to create billing portal session" },
       { status: 500 }
-    );
+    )
   }
 }
