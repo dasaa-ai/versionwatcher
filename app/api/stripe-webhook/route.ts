@@ -14,6 +14,7 @@ function unixToIso(unix: unknown) {
 
 export async function POST(req: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
   if (!webhookSecret) {
     return NextResponse.json(
       { error: "Missing STRIPE_WEBHOOK_SECRET" },
@@ -22,6 +23,7 @@ export async function POST(req: Request) {
   }
 
   const sig = req.headers.get("stripe-signature");
+
   if (!sig) {
     return NextResponse.json(
       { error: "Missing stripe-signature header" },
@@ -29,14 +31,14 @@ export async function POST(req: Request) {
     );
   }
 
-  // Stripe signature verification requires the raw body string
   const body = await req.text();
 
   let event: Stripe.Event;
+
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err: any) {
-    console.error("❌ Webhook signature verification failed:", err?.message);
+    console.error("Webhook signature verification failed:", err?.message);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -46,12 +48,15 @@ export async function POST(req: Request) {
     // -------------------------
     // checkout.session.completed
     // -------------------------
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
 
       const userId = session.metadata?.user_id;
+
       const customerId =
         typeof session.customer === "string" ? session.customer : null;
+
       const subscriptionId =
         typeof session.subscription === "string" ? session.subscription : null;
 
@@ -71,11 +76,11 @@ export async function POST(req: Request) {
 
       const priceId = sub.items.data?.[0]?.price?.id ?? null;
 
-      // TS-safe way: Stripe types sometimes vary, so read via index signature
       const currentPeriodEnd = unixToIso(
         (sub as any).current_period_end ?? (sub as any).current_period_end
       );
 
+      // SAVE SUBSCRIPTION DATA
       const { error } = await admin.from("subscriptions").upsert(
         {
           user_id: userId,
@@ -97,12 +102,28 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "DB write failed" }, { status: 500 });
       }
 
+      // NEW: SAVE CUSTOMER ID IN PROFILES TABLE
+      if (customerId && userId) {
+        const { error: profileError } = await admin
+          .from("profiles")
+          .update({
+            stripe_customer_id: customerId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", userId);
+
+        if (profileError) {
+          console.error("Supabase profile update error:", profileError);
+        }
+      }
+
       return NextResponse.json({ received: true }, { status: 200 });
     }
 
     // -----------------------------
     // customer.subscription.updated
     // -----------------------------
+
     if (event.type === "customer.subscription.updated") {
       const sub = event.data.object as Stripe.Subscription;
 
@@ -134,6 +155,7 @@ export async function POST(req: Request) {
     // -----------------------------
     // customer.subscription.deleted
     // -----------------------------
+
     if (event.type === "customer.subscription.deleted") {
       const sub = event.data.object as Stripe.Subscription;
 
@@ -159,6 +181,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err: any) {
     console.error("Webhook handler error:", err);
+
     return NextResponse.json(
       { error: err?.message || "Webhook failed" },
       { status: 500 }
