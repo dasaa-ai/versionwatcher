@@ -1,14 +1,30 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
-import { createClient } from "@supabase/supabase-js"
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-      process.env.SUPABASE_SERVICE_ROLE_KEY as string
+    const cookieStore = await cookies()
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+          set(name: string, value: string, options: any) {
+            cookieStore.set({ name, value, ...options })
+          },
+          remove(name: string, options: any) {
+            cookieStore.set({ name, value: "", ...options })
+          },
+        },
+      }
     )
 
     const {
@@ -19,13 +35,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: profile, error } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
       .select("stripe_customer_id")
       .eq("id", user.id)
       .single()
 
-    if (error || !profile?.stripe_customer_id) {
+    if (!profile?.stripe_customer_id) {
       return NextResponse.json(
         { error: "Stripe customer not found" },
         { status: 400 }
@@ -38,10 +54,11 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ url: portalSession.url })
-  } catch (err) {
-    console.error("Billing portal error:", err)
+  } catch (error) {
+    console.error("Stripe portal error:", error)
+
     return NextResponse.json(
-      { error: "Failed to create billing portal session" },
+      { error: "Failed to create portal session" },
       { status: 500 }
     )
   }
