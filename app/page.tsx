@@ -1,65 +1,66 @@
 import Link from "next/link";
 
+const trackedApps = ["Spotify", "WhatsApp", "Netflix", "Telegram", "Notion"];
+
 const recentlyDetected = [
   {
     app: "Spotify: Music and Podcasts",
     from: "9.1.26",
     to: "9.1.28",
-    note: "Popular streaming app with frequent release cadence.",
+    note: "Monitor high-frequency releases and spot competitor velocity faster.",
   },
   {
     app: "Instagram",
     from: "419.0",
     to: "420.0",
-    note: "Useful for tracking fast-moving consumer product updates.",
+    note: "Track consumer app release cadence and product momentum over time.",
   },
   {
     app: "Notion",
     from: "2.49",
     to: "2.50",
-    note: "Great example of monitoring productivity and SaaS-adjacent apps.",
+    note: "Follow productivity and SaaS-adjacent apps that shape feature expectations.",
   },
   {
     app: "TikTok",
     from: "38.6.0",
     to: "38.7.0",
-    note: "Track market leaders and competitor momentum in real time.",
+    note: "Catch major market moves the moment a tracked app ships a new version.",
   },
 ];
 
-const useCases = [
-  ["Product managers", "Spot competitor product velocity"],
-  ["ASO teams", "Catch release changes the moment they happen"],
-  ["Agencies", "Monitor dozens of client and competitor apps"],
-  ["QA / founders", "Know exactly when a tracked app ships"],
-  ["Individuals", "Never miss an app update again"],
+const audiences = [
+  ["Product managers", "Monitor competitor release velocity and feature movement"],
+  ["ASO teams", "Catch version changes the moment they happen"],
+  ["Agencies", "Track dozens of client and competitor apps from one place"],
+  ["Founders / QA", "Know exactly when a tracked app ships"],
 ];
 
 const featureChips = [
-  "Checks automatically every 2 hours",
-  "Email alerts the moment versions change",
-  "Track competitors, not just your own apps",
+  "Automatic checks every 2 hours",
+  "Email alerts when versions change",
+  "Track competitors, clients, and your own apps",
 ];
 
-const whyCards = [
+const proofCards = [
   {
-    title: "Why it matters",
-    text: "Apps update constantly. Manually checking competitors, client apps, or market leaders is slow, inconsistent, and easy to miss.",
+    title: "Built for real monitoring",
+    text: "Track App Store version changes automatically instead of checking apps manually and missing important releases.",
   },
   {
-    title: "What you get",
-    text: "A lightweight monitoring system for iOS releases: automatic checks, instant alerts, and a clean watchlist for the apps you care about.",
+    title: "Useful from day one",
+    text: "Watch competitors, client portfolios, market leaders, or your own app releases from one clean dashboard.",
   },
   {
-    title: "What it becomes",
-    text: "A source of competitor intelligence: who ships often, who slows down, and where product momentum is building in the App Store.",
+    title: "Grows into intelligence",
+    text: "Over time, VersionWatcher becomes a signal layer for release cadence, product momentum, and market activity.",
   },
 ];
 
 const steps = [
-  ["1. Add apps", "Track your own apps, competitors, market leaders, or client portfolios."],
+  ["1. Add apps", "Track competitors, client apps, market leaders, or your own product."],
   ["2. We monitor versions", "VersionWatcher checks App Store version changes automatically every 2 hours."],
-  ["3. Get alerted", "Receive email alerts when a new version appears, so you can act immediately."],
+  ["3. Get alerted", "Receive email alerts when a tracked app ships a new version."],
 ];
 
 const pricing = [
@@ -67,6 +68,7 @@ const pricing = [
     name: "Free",
     price: "€0",
     apps: "1 app",
+    desc: "Perfect for trying the product and tracking one important app.",
     cta: "Start free",
     href: "/signup",
     featured: false,
@@ -75,6 +77,7 @@ const pricing = [
     name: "Basic",
     price: "€9",
     apps: "5 apps",
+    desc: "For focused tracking across competitors, clients, or multiple products.",
     cta: "Choose Basic",
     href: "/signup",
     featured: false,
@@ -83,6 +86,7 @@ const pricing = [
     name: "Pro",
     price: "€19",
     apps: "Unlimited apps",
+    desc: "For teams and power users who want complete App Store monitoring.",
     cta: "Choose Pro",
     href: "/signup",
     featured: true,
@@ -95,7 +99,7 @@ export default function HomePage() {
       style={{
         minHeight: "100vh",
         background:
-          "radial-gradient(1200px 600px at 20% 0%, rgba(37,99,235,.22), rgba(0,0,0,0) 55%), radial-gradient(900px 500px at 80% 20%, rgba(168,85,247,.14), rgba(0,0,0,0) 45%), #020617",
+          "radial-gradient(1200px 600px at 12% 0%, rgba(37,99,235,.18), rgba(0,0,0,0) 52%), radial-gradient(900px 500px at 82% 18%, rgba(168,85,247,.12), rgba(0,0,0,0) 44%), #020617",
         color: "#f8fafc",
       }}
     >
@@ -113,27 +117,27 @@ export default function HomePage() {
             alignItems: "center",
             gap: 16,
             flexWrap: "wrap",
-            marginBottom: 44,
+            marginBottom: 48,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
+                width: 42,
+                height: 42,
+                borderRadius: 14,
                 background:
                   "linear-gradient(135deg, rgba(59,130,246,1), rgba(168,85,247,1))",
                 display: "grid",
                 placeItems: "center",
-                fontWeight: 800,
+                fontWeight: 900,
                 color: "white",
-                boxShadow: "0 10px 30px rgba(59,130,246,.35)",
+                boxShadow: "0 10px 30px rgba(59,130,246,.28)",
               }}
             >
               V
             </div>
-            <div style={{ fontSize: 20, fontWeight: 800 }}>VersionWatcher</div>
+            <div style={{ fontSize: 20, fontWeight: 900 }}>VersionWatcher</div>
           </div>
 
           <nav style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -142,27 +146,29 @@ export default function HomePage() {
               style={{
                 padding: "10px 16px",
                 borderRadius: 12,
-                border: "1px solid rgba(148,163,184,.22)",
+                border: "1px solid rgba(148,163,184,.18)",
                 color: "#e2e8f0",
                 textDecoration: "none",
-                background: "rgba(15,23,42,.45)",
+                background: "rgba(15,23,42,.42)",
               }}
             >
               Pricing
             </a>
+
             <Link
               href="/login"
               style={{
                 padding: "10px 16px",
                 borderRadius: 12,
-                border: "1px solid rgba(148,163,184,.22)",
+                border: "1px solid rgba(148,163,184,.18)",
                 color: "#e2e8f0",
                 textDecoration: "none",
-                background: "rgba(15,23,42,.45)",
+                background: "rgba(15,23,42,.42)",
               }}
             >
               Login
             </Link>
+
             <Link
               href="/signup"
               style={{
@@ -171,10 +177,10 @@ export default function HomePage() {
                 background: "#f8fafc",
                 color: "#0f172a",
                 textDecoration: "none",
-                fontWeight: 800,
+                fontWeight: 900,
               }}
             >
-              Start tracking updates
+              Start free
             </Link>
           </nav>
         </header>
@@ -186,15 +192,15 @@ export default function HomePage() {
                 display: "inline-flex",
                 padding: "8px 12px",
                 borderRadius: 999,
-                border: "1px solid rgba(59,130,246,.28)",
+                border: "1px solid rgba(59,130,246,.22)",
                 background: "rgba(59,130,246,.10)",
                 color: "#bfdbfe",
                 fontSize: 13,
-                fontWeight: 700,
+                fontWeight: 800,
                 marginBottom: 18,
               }}
             >
-              App Store update alerts + competitor intelligence
+              App Store release intelligence for teams
             </div>
 
             <h1
@@ -207,24 +213,47 @@ export default function HomePage() {
                 maxWidth: 760,
               }}
             >
-              Track App Store updates automatically.
+              Monitor App Store competitor updates automatically.
             </h1>
 
             <p
               style={{
                 fontSize: 20,
-                lineHeight: 1.6,
-                color: "rgba(226,232,240,.88)",
+                lineHeight: 1.65,
+                color: "rgba(226,232,240,.86)",
                 maxWidth: 760,
-                margin: "0 0 26px",
+                margin: "0 0 24px",
               }}
             >
-              Add the iPhone apps you care about and VersionWatcher emails you
-              when a new version goes live. Perfect for individuals, founders, PMs,
-              QA teams, agencies, ASO specialists, and anyone tracking competitor moves.
+              Get alerted the moment any iOS app ships a new version. Track
+              competitors, client apps, and your own releases from one clean dashboard.
             </p>
 
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 22 }}>
+            <div
+              style={{
+                fontSize: 16,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+                marginBottom: 26,
+                maxWidth: 760,
+              }}
+            >
+              Track apps like{" "}
+              <strong style={{ color: "#f8fafc" }}>Spotify</strong>,{" "}
+              <strong style={{ color: "#f8fafc" }}>WhatsApp</strong>,{" "}
+              <strong style={{ color: "#f8fafc" }}>Netflix</strong>,{" "}
+              <strong style={{ color: "#f8fafc" }}>Telegram</strong>, and millions of
+              iOS apps.
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 14,
+                flexWrap: "wrap",
+                marginBottom: 24,
+              }}
+            >
               <Link
                 href="/signup"
                 style={{
@@ -237,7 +266,7 @@ export default function HomePage() {
                   boxShadow: "0 14px 40px rgba(255,255,255,.08)",
                 }}
               >
-                Start tracking updates
+                Start free
               </Link>
 
               <a
@@ -245,7 +274,7 @@ export default function HomePage() {
                 style={{
                   padding: "14px 20px",
                   borderRadius: 14,
-                  border: "1px solid rgba(148,163,184,.22)",
+                  border: "1px solid rgba(148,163,184,.18)",
                   background: "rgba(15,23,42,.45)",
                   color: "#e2e8f0",
                   textDecoration: "none",
@@ -263,8 +292,8 @@ export default function HomePage() {
                   style={{
                     padding: 14,
                     borderRadius: 16,
-                    background: "rgba(15,23,42,.48)",
-                    border: "1px solid rgba(148,163,184,.14)",
+                    background: "rgba(15,23,42,.42)",
+                    border: "1px solid rgba(148,163,184,.10)",
                     color: "rgba(226,232,240,.92)",
                     fontSize: 14,
                     lineHeight: 1.5,
@@ -280,17 +309,17 @@ export default function HomePage() {
             style={{
               borderRadius: 24,
               padding: 22,
-              background: "rgba(15,23,42,.62)",
-              border: "1px solid rgba(148,163,184,.14)",
-              boxShadow: "0 30px 80px rgba(0,0,0,.35)",
+              background: "rgba(15,23,42,.54)",
+              border: "1px solid rgba(148,163,184,.10)",
+              boxShadow: "0 30px 80px rgba(0,0,0,.32)",
             }}
           >
             <div
               style={{
                 borderRadius: 18,
                 padding: 20,
-                background: "rgba(2,6,23,.85)",
-                border: "1px solid rgba(148,163,184,.12)",
+                background: "rgba(2,6,23,.88)",
+                border: "1px solid rgba(148,163,184,.08)",
               }}
             >
               <div
@@ -309,6 +338,7 @@ export default function HomePage() {
                     Spotify: Music and Podcasts updated
                   </div>
                 </div>
+
                 <div
                   style={{
                     alignSelf: "start",
@@ -331,7 +361,7 @@ export default function HomePage() {
                   marginBottom: 18,
                 }}
               >
-                {useCases.map(([title, desc]) => (
+                {audiences.map(([title, desc]) => (
                   <div
                     key={title}
                     className="useCaseRow"
@@ -341,8 +371,8 @@ export default function HomePage() {
                       gap: 16,
                       padding: "12px 14px",
                       borderRadius: 14,
-                      background: "rgba(15,23,42,.62)",
-                      border: "1px solid rgba(148,163,184,.10)",
+                      background: "rgba(15,23,42,.58)",
+                      border: "1px solid rgba(148,163,184,.08)",
                     }}
                   >
                     <div style={{ fontWeight: 800 }}>{title}</div>
@@ -356,22 +386,67 @@ export default function HomePage() {
                   padding: 16,
                   borderRadius: 16,
                   background:
-                    "linear-gradient(135deg, rgba(37,99,235,.16), rgba(168,85,247,.12))",
-                  border: "1px solid rgba(59,130,246,.18)",
+                    "linear-gradient(135deg, rgba(37,99,235,.14), rgba(168,85,247,.10))",
+                  border: "1px solid rgba(59,130,246,.14)",
                 }}
               >
-                <div style={{ fontSize: 13, color: "#93c5fd", fontWeight: 800, marginBottom: 8 }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: "#93c5fd",
+                    fontWeight: 800,
+                    marginBottom: 8,
+                  }}
+                >
                   Bigger vision
                 </div>
                 <div style={{ fontSize: 16, lineHeight: 1.6, color: "#e2e8f0" }}>
-                  VersionWatcher is not just an alert tool — it becomes an
-                  App Store intelligence layer built from millions of update
-                  signals over time.
+                  VersionWatcher is not just an alert tool — it becomes an App Store
+                  intelligence layer built from release signals over time.
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        <section style={{ marginTop: 30 }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 10,
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 13,
+                color: "#94a3b8",
+                fontWeight: 800,
+                textTransform: "uppercase",
+                letterSpacing: 1.2,
+              }}
+            >
+              Popular apps teams track
+            </div>
+
+            {trackedApps.map((app) => (
+              <div
+                key={app}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 999,
+                  background: "rgba(15,23,42,.42)",
+                  border: "1px solid rgba(148,163,184,.12)",
+                  color: "#e2e8f0",
+                  fontSize: 14,
+                }}
+              >
+                {app}
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section id="live-updates" style={{ marginTop: 88 }}>
           <div style={{ maxWidth: 760, marginBottom: 22 }}>
@@ -387,12 +462,27 @@ export default function HomePage() {
             >
               Recently detected updates
             </div>
-            <h2 style={{ fontSize: 42, lineHeight: 1.1, margin: "0 0 12px", fontWeight: 900 }}>
-              Live App Store activity, made useful.
+
+            <h2
+              style={{
+                fontSize: 42,
+                lineHeight: 1.1,
+                margin: "0 0 12px",
+                fontWeight: 900,
+              }}
+            >
+              Real App Store activity, made useful.
             </h2>
-            <p style={{ color: "rgba(226,232,240,.82)", fontSize: 18, lineHeight: 1.7 }}>
-              Show visitors that VersionWatcher is active, useful, and always scanning.
-              Today this section is curated for trust and clarity. Next, it can become a true live feed powered by stored update events.
+
+            <p
+              style={{
+                color: "rgba(226,232,240,.82)",
+                fontSize: 18,
+                lineHeight: 1.7,
+              }}
+            >
+              VersionWatcher helps you turn noisy release activity into a usable signal
+              for product, growth, ASO, and competitive research.
             </p>
           </div>
 
@@ -403,8 +493,8 @@ export default function HomePage() {
                 style={{
                   padding: 22,
                   borderRadius: 20,
-                  background: "rgba(15,23,42,.42)",
-                  border: "1px solid rgba(148,163,184,.12)",
+                  background: "rgba(15,23,42,.38)",
+                  border: "1px solid rgba(148,163,184,.10)",
                 }}
               >
                 <div
@@ -417,7 +507,10 @@ export default function HomePage() {
                     flexWrap: "wrap",
                   }}
                 >
-                  <div style={{ fontSize: 20, fontWeight: 900, maxWidth: 360 }}>{item.app}</div>
+                  <div style={{ fontSize: 20, fontWeight: 900, maxWidth: 360 }}>
+                    {item.app}
+                  </div>
+
                   <div
                     style={{
                       padding: "6px 10px",
@@ -431,6 +524,7 @@ export default function HomePage() {
                     v{item.from} → v{item.to}
                   </div>
                 </div>
+
                 <div style={{ color: "rgba(226,232,240,.78)", lineHeight: 1.7 }}>
                   {item.note}
                 </div>
@@ -441,14 +535,14 @@ export default function HomePage() {
 
         <section style={{ marginTop: 88 }}>
           <div className="whyGrid">
-            {whyCards.map((item) => (
+            {proofCards.map((item) => (
               <div
                 key={item.title}
                 style={{
                   padding: 22,
                   borderRadius: 20,
-                  background: "rgba(15,23,42,.42)",
-                  border: "1px solid rgba(148,163,184,.12)",
+                  background: "rgba(15,23,42,.38)",
+                  border: "1px solid rgba(148,163,184,.10)",
                 }}
               >
                 <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 10 }}>
@@ -476,9 +570,18 @@ export default function HomePage() {
             >
               How it works
             </div>
-            <h2 style={{ fontSize: 42, lineHeight: 1.1, margin: "0 0 12px", fontWeight: 900 }}>
+
+            <h2
+              style={{
+                fontSize: 42,
+                lineHeight: 1.1,
+                margin: "0 0 12px",
+                fontWeight: 900,
+              }}
+            >
               Three simple steps.
             </h2>
+
             <p style={{ color: "rgba(226,232,240,.82)", fontSize: 18, lineHeight: 1.7 }}>
               Add apps. We monitor versions. You get the signal.
             </p>
@@ -492,11 +595,15 @@ export default function HomePage() {
                   padding: 24,
                   borderRadius: 22,
                   background: "rgba(2,6,23,.55)",
-                  border: "1px solid rgba(148,163,184,.12)",
+                  border: "1px solid rgba(148,163,184,.10)",
                 }}
               >
-                <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 12 }}>{title}</div>
-                <div style={{ color: "rgba(226,232,240,.82)", lineHeight: 1.7 }}>{text}</div>
+                <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 12 }}>
+                  {title}
+                </div>
+                <div style={{ color: "rgba(226,232,240,.82)", lineHeight: 1.7 }}>
+                  {text}
+                </div>
               </div>
             ))}
           </div>
@@ -516,8 +623,9 @@ export default function HomePage() {
             >
               Pricing
             </div>
+
             <h2 style={{ fontSize: 42, lineHeight: 1.1, margin: 0, fontWeight: 900 }}>
-              Simple plans. No confusion.
+              Simple plans. Built to scale with your use case.
             </h2>
           </div>
 
@@ -528,16 +636,13 @@ export default function HomePage() {
                 style={{
                   padding: 24,
                   borderRadius: 22,
-                  background:
-                    plan.featured
-                      ? "linear-gradient(180deg, rgba(37,99,235,.18), rgba(15,23,42,.72))"
-                      : "rgba(15,23,42,.45)",
-                  border:
-                    plan.featured
-                      ? "1px solid rgba(59,130,246,.28)"
-                      : "1px solid rgba(148,163,184,.12)",
-                  boxShadow:
-                    plan.featured ? "0 20px 50px rgba(37,99,235,.18)" : "none",
+                  background: plan.featured
+                    ? "linear-gradient(180deg, rgba(37,99,235,.16), rgba(15,23,42,.72))"
+                    : "rgba(15,23,42,.42)",
+                  border: plan.featured
+                    ? "1px solid rgba(59,130,246,.24)"
+                    : "1px solid rgba(148,163,184,.10)",
+                  boxShadow: plan.featured ? "0 20px 50px rgba(37,99,235,.14)" : "none",
                 }}
               >
                 <div style={{ fontSize: 24, fontWeight: 900 }}>{plan.name}</div>
@@ -546,9 +651,16 @@ export default function HomePage() {
                 </div>
                 <div style={{ color: "#94a3b8", marginBottom: 18 }}>per month</div>
                 <div style={{ marginBottom: 10, color: "#e2e8f0" }}>{plan.apps}</div>
-                <div style={{ marginBottom: 22, color: "rgba(226,232,240,.78)", lineHeight: 1.6 }}>
-                  Email alerts, update monitoring, and watchlists that scale with your needs.
+                <div
+                  style={{
+                    marginBottom: 22,
+                    color: "rgba(226,232,240,.78)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {plan.desc}
                 </div>
+
                 <Link
                   href={plan.href}
                   style={{
@@ -571,17 +683,18 @@ export default function HomePage() {
         <section style={{ marginTop: 88 }}>
           <div
             style={{
-              padding: 28,
+              padding: 30,
               borderRadius: 28,
               background:
-                "linear-gradient(135deg, rgba(37,99,235,.20), rgba(168,85,247,.16))",
-              border: "1px solid rgba(148,163,184,.14)",
+                "linear-gradient(135deg, rgba(37,99,235,.18), rgba(168,85,247,.14))",
+              border: "1px solid rgba(148,163,184,.12)",
               textAlign: "center",
             }}
           >
             <h2 style={{ fontSize: 42, margin: "0 0 12px", fontWeight: 900 }}>
               Stop checking manually.
             </h2>
+
             <p
               style={{
                 maxWidth: 760,
@@ -592,8 +705,9 @@ export default function HomePage() {
               }}
             >
               Turn App Store release activity into a signal you can actually use.
-              Track apps, spot competitor moves, and get alerted when the market changes.
+              Track apps, monitor competitors, and get alerted when the market moves.
             </p>
+
             <Link
               href="/signup"
               style={{
@@ -606,7 +720,7 @@ export default function HomePage() {
                 fontWeight: 900,
               }}
             >
-              Start tracking updates
+              Start free
             </Link>
           </div>
         </section>
@@ -615,7 +729,7 @@ export default function HomePage() {
           style={{
             marginTop: 72,
             paddingTop: 24,
-            borderTop: "1px solid rgba(148,163,184,.14)",
+            borderTop: "1px solid rgba(148,163,184,.12)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -626,6 +740,7 @@ export default function HomePage() {
           }}
         >
           <div>© VersionWatcher</div>
+
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <a href="/privacy" style={{ color: "inherit", textDecoration: "none" }}>
               Privacy
@@ -633,7 +748,10 @@ export default function HomePage() {
             <a href="/terms" style={{ color: "inherit", textDecoration: "none" }}>
               Terms
             </a>
-            <a href="mailto:hello@versionwatcher.com" style={{ color: "inherit", textDecoration: "none" }}>
+            <a
+              href="mailto:hello@versionwatcher.com"
+              style={{ color: "inherit", textDecoration: "none" }}
+            >
               Contact
             </a>
           </div>
@@ -641,52 +759,58 @@ export default function HomePage() {
       </section>
 
       <style>{`
-  .heroGrid,
-  .whyGrid,
-  .stepsGrid,
-  .pricingGrid,
-  .liveGrid {
-    display: grid;
-    gap: 18px;
-  }
+        .heroGrid,
+        .whyGrid,
+        .stepsGrid,
+        .pricingGrid,
+        .liveGrid,
+        .chipsGrid {
+          display: grid;
+          gap: 18px;
+        }
 
-  .heroGrid {
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: 36px;
-    align-items: center;
-  }
+        .heroGrid {
+          grid-template-columns: 1.08fr 0.92fr;
+          gap: 36px;
+          align-items: center;
+        }
 
-  .whyGrid,
-  .stepsGrid,
-  .pricingGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+        .chipsGrid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
 
-  .liveGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+        .whyGrid,
+        .stepsGrid,
+        .pricingGrid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
 
-  @media (max-width: 980px) {
-    .heroGrid,
-    .whyGrid,
-    .stepsGrid,
-    .pricingGrid,
-    .liveGrid {
-      grid-template-columns: 1fr;
-    }
-  }
+        .liveGrid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
 
-  @media (max-width: 780px) {
-    .useCaseRow {
-      flex-direction: column;
-      align-items: flex-start;
-    }
+        @media (max-width: 980px) {
+          .heroGrid,
+          .whyGrid,
+          .stepsGrid,
+          .pricingGrid,
+          .liveGrid,
+          .chipsGrid {
+            grid-template-columns: 1fr;
+          }
+        }
 
-    .useCaseRow > div:last-child {
-      text-align: left !important;
-    }
-  }
-`}</style>
+        @media (max-width: 780px) {
+          .useCaseRow {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .useCaseRow > div:last-child {
+            text-align: left !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }
