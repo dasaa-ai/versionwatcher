@@ -43,6 +43,50 @@ const apps = [
     latestVersion: "2.50",
     note: "Follow a fast-moving productivity app used by many teams.",
   },
+  {
+    slug: "youtube",
+    name: "YouTube",
+    category: "Photo & Video",
+    latestVersion: "19.10",
+    note: "Track a major video platform and monitor release movement.",
+  },
+  {
+    slug: "telegram",
+    name: "Telegram Messenger",
+    category: "Social Networking",
+    latestVersion: "10.9",
+    note: "Monitor updates from a widely used messaging app.",
+  },
+  {
+    slug: "slack",
+    name: "Slack",
+    category: "Business",
+    latestVersion: "24.03.10",
+    note: "Track releases from a major business communication app.",
+  },
+];
+
+const seoPages = [
+  {
+    href: "/track-app-store-updates",
+    title: "Track App Store updates",
+  },
+  {
+    href: "/app-update-alerts-ios",
+    title: "App update alerts for iOS",
+  },
+  {
+    href: "/monitor-competitor-app-updates",
+    title: "Monitor competitor app updates",
+  },
+  {
+    href: "/app-store-update-tracker",
+    title: "App Store update tracker",
+  },
+  {
+    href: "/ios-app-version-tracker",
+    title: "iOS app version tracker",
+  },
 ];
 
 export default function AppsIndexPage() {
@@ -129,7 +173,7 @@ export default function AppsIndexPage() {
           </div>
         </header>
 
-        <section style={{ marginBottom: 54 }}>
+        <section style={{ marginBottom: 42 }}>
           <div
             style={{
               display: "inline-flex",
@@ -168,9 +212,9 @@ export default function AppsIndexPage() {
               marginBottom: 24,
             }}
           >
-            Explore example tracked iOS app pages from VersionWatcher. Browse app
-            version monitoring pages, latest tracked versions, and App Store update
-            pages built for competitor and market monitoring.
+            Explore tracked iOS app pages from VersionWatcher. Browse app version
+            monitoring pages, latest tracked versions, and App Store update pages
+            built for competitor and market monitoring.
           </p>
 
           <div
@@ -178,6 +222,7 @@ export default function AppsIndexPage() {
               display: "flex",
               gap: 14,
               flexWrap: "wrap",
+              marginBottom: 18,
             }}
           >
             <Link
@@ -208,6 +253,37 @@ export default function AppsIndexPage() {
             >
               View tracking page
             </Link>
+          </div>
+        </section>
+
+        <section style={{ marginBottom: 42 }}>
+          <div
+            style={{
+              fontSize: 13,
+              color: "#93c5fd",
+              fontWeight: 800,
+              marginBottom: 14,
+              textTransform: "uppercase",
+              letterSpacing: 1.4,
+            }}
+          >
+            Related guides
+          </div>
+
+          <div className="linkGrid">
+            {seoPages.map((page) => (
+              <Link
+                key={page.href}
+                href={page.href}
+                className="miniCard"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <div style={{ fontWeight: 800 }}>{page.title}</div>
+                <div style={{ color: "#94a3b8", marginTop: 6, lineHeight: 1.6 }}>
+                  Learn more →
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
 
@@ -344,6 +420,12 @@ export default function AppsIndexPage() {
           gap: 18px;
         }
 
+        .linkGrid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
+        }
+
         .card {
           padding: 24px;
           border-radius: 22px;
@@ -352,14 +434,24 @@ export default function AppsIndexPage() {
           transition: transform .18s ease, border-color .18s ease, background .18s ease;
         }
 
-        .card:hover {
+        .card:hover,
+        .miniCard:hover {
           transform: translateY(-2px);
           border-color: rgba(96,165,250,.24);
           background: rgba(15,23,42,.55);
         }
 
+        .miniCard {
+          padding: 18px;
+          border-radius: 18px;
+          background: rgba(15,23,42,.38);
+          border: 1px solid rgba(148,163,184,.10);
+          transition: transform .18s ease, border-color .18s ease, background .18s ease;
+        }
+
         @media (max-width: 980px) {
-          .gridCards {
+          .gridCards,
+          .linkGrid {
             grid-template-columns: 1fr !important;
           }
         }
