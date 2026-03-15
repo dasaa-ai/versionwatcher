@@ -75,6 +75,198 @@ const apps: AppEntry[] = [
     summary:
       "Follow Notion App Store releases and use version changes as a signal for SaaS product movement and iteration speed.",
   },
+  {
+    slug: "youtube",
+    name: "YouTube",
+    developer: "Google",
+    category: "Photo & Video",
+    latestVersion: "19.10",
+    previousVersion: "19.09",
+    releaseDate: "March 2026",
+    appStoreId: "544007664",
+    summary:
+      "Track YouTube App Store version changes and monitor release activity from one of the most widely used video apps.",
+  },
+  {
+    slug: "tiktok",
+    name: "TikTok",
+    developer: "TikTok Ltd.",
+    category: "Entertainment",
+    latestVersion: "38.7.0",
+    previousVersion: "38.6.0",
+    releaseDate: "March 2026",
+    appStoreId: "835599320",
+    summary:
+      "Track TikTok App Store updates automatically and stay aware of release cadence across a major consumer social app.",
+  },
+  {
+    slug: "telegram",
+    name: "Telegram Messenger",
+    developer: "Telegram FZ-LLC",
+    category: "Social Networking",
+    latestVersion: "10.9",
+    previousVersion: "10.8",
+    releaseDate: "March 2026",
+    appStoreId: "686449807",
+    summary:
+      "Track Telegram version history and App Store updates to monitor release patterns in messaging and social categories.",
+  },
+  {
+    slug: "discord",
+    name: "Discord",
+    developer: "Discord, Inc.",
+    category: "Social Networking",
+    latestVersion: "221.0",
+    previousVersion: "220.0",
+    releaseDate: "March 2026",
+    appStoreId: "985746746",
+    summary:
+      "Monitor Discord iOS app version changes and follow release movement across a major community platform.",
+  },
+  {
+    slug: "slack",
+    name: "Slack",
+    developer: "Slack Technologies, Inc.",
+    category: "Business",
+    latestVersion: "24.03.10",
+    previousVersion: "24.02.20",
+    releaseDate: "March 2026",
+    appStoreId: "618783545",
+    summary:
+      "Track Slack App Store updates and use version changes as a signal for business software release cadence.",
+  },
+  {
+    slug: "reddit",
+    name: "Reddit",
+    developer: "reddit",
+    category: "News",
+    latestVersion: "2026.10.0",
+    previousVersion: "2026.09.0",
+    releaseDate: "March 2026",
+    appStoreId: "1064216828",
+    summary:
+      "Monitor Reddit App Store releases and track version changes in a major content and community platform.",
+  },
+  {
+    slug: "twitter",
+    name: "X",
+    developer: "X Corp.",
+    category: "News",
+    latestVersion: "10.35",
+    previousVersion: "10.34",
+    releaseDate: "March 2026",
+    appStoreId: "333903271",
+    summary:
+      "Track X app updates automatically and monitor release cadence across a major social and news platform.",
+  },
+  {
+    slug: "facebook",
+    name: "Facebook",
+    developer: "Meta Platforms, Inc.",
+    category: "Social Networking",
+    latestVersion: "501.0",
+    previousVersion: "500.0",
+    releaseDate: "March 2026",
+    appStoreId: "284882215",
+    summary:
+      "Track Facebook version changes and follow App Store release movement across one of the largest social apps.",
+  },
+  {
+    slug: "gmail",
+    name: "Gmail - Email by Google",
+    developer: "Google",
+    category: "Productivity",
+    latestVersion: "6.0.240",
+    previousVersion: "6.0.239",
+    releaseDate: "March 2026",
+    appStoreId: "422689480",
+    summary:
+      "Monitor Gmail App Store updates and stay aware of release changes in a major productivity app.",
+  },
+  {
+    slug: "google-maps",
+    name: "Google Maps",
+    developer: "Google",
+    category: "Navigation",
+    latestVersion: "24.10",
+    previousVersion: "24.09",
+    releaseDate: "March 2026",
+    appStoreId: "585027354",
+    summary:
+      "Track Google Maps version history and App Store updates to follow a major navigation product.",
+  },
+  {
+    slug: "amazon",
+    name: "Amazon Shopping",
+    developer: "AMZN Mobile LLC",
+    category: "Shopping",
+    latestVersion: "25.6.0",
+    previousVersion: "25.5.0",
+    releaseDate: "March 2026",
+    appStoreId: "297606951",
+    summary:
+      "Monitor Amazon Shopping app updates and track release activity in one of the largest commerce apps.",
+  },
+  {
+    slug: "uber",
+    name: "Uber",
+    developer: "Uber Technologies, Inc.",
+    category: "Travel",
+    latestVersion: "3.610.100",
+    previousVersion: "3.609.100",
+    releaseDate: "March 2026",
+    appStoreId: "368677368",
+    summary:
+      "Track Uber iOS app version changes and stay aware of release movement in transportation and mobility.",
+  },
+  {
+    slug: "airbnb",
+    name: "Airbnb",
+    developer: "Airbnb, Inc.",
+    category: "Travel",
+    latestVersion: "24.11",
+    previousVersion: "24.10",
+    releaseDate: "March 2026",
+    appStoreId: "401626263",
+    summary:
+      "Monitor Airbnb App Store updates and follow release cadence across a major travel platform.",
+  },
+  {
+    slug: "dropbox",
+    name: "Dropbox: Files & Photos",
+    developer: "Dropbox, Inc.",
+    category: "Productivity",
+    latestVersion: "390.2",
+    previousVersion: "390.1",
+    releaseDate: "March 2026",
+    appStoreId: "327630330",
+    summary:
+      "Track Dropbox version changes and monitor release movement in a widely used file and productivity app.",
+  },
+  {
+    slug: "paypal",
+    name: "PayPal",
+    developer: "PayPal, Inc.",
+    category: "Finance",
+    latestVersion: "8.59.0",
+    previousVersion: "8.58.0",
+    releaseDate: "March 2026",
+    appStoreId: "283646709",
+    summary:
+      "Monitor PayPal iOS version changes and stay aware of release cadence in a major payments app.",
+  },
+  {
+    slug: "zoom",
+    name: "ZOOM Cloud Meetings",
+    developer: "Zoom Communications, Inc.",
+    category: "Business",
+    latestVersion: "6.0.1",
+    previousVersion: "6.0.0",
+    releaseDate: "March 2026",
+    appStoreId: "546505307",
+    summary:
+      "Track Zoom App Store updates and monitor business software release activity automatically.",
+  },
 ];
 
 function getApp(slug: string) {
@@ -96,6 +288,7 @@ export async function generateMetadata({
   if (!entry) {
     return {
       title: "App not found | VersionWatcher",
+      description: "The requested app page could not be found.",
     };
   }
 
@@ -236,7 +429,7 @@ export default async function AppDetailPage({
                 maxWidth: 760,
               }}
             >
-              {entry.name} latest iOS version tracker.
+              {entry.name} iOS app version history and update tracker.
             </h1>
 
             <p
@@ -379,7 +572,69 @@ export default async function AppDetailPage({
                 letterSpacing: 1.4,
               }}
             >
-              Why track this app
+              Latest {entry.name} app updates
+            </div>
+
+            <h2
+              style={{
+                fontSize: 40,
+                fontWeight: 900,
+                lineHeight: 1.1,
+                margin: "0 0 12px",
+              }}
+            >
+              Track {entry.name} App Store updates automatically.
+            </h2>
+
+            <p
+              style={{
+                color: "#cbd5e1",
+                fontSize: 18,
+                lineHeight: 1.7,
+              }}
+            >
+              VersionWatcher monitors App Store version changes so you can follow {entry.name} release
+              movement without checking the App Store manually.
+            </p>
+          </div>
+
+          <div className="grid3">
+            <div className="card">
+              <div className="cardTitle">Latest iOS version</div>
+              <div className="cardText">
+                The latest tracked iOS version for {entry.name} is v{entry.latestVersion}.
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="cardTitle">Previous tracked version</div>
+              <div className="cardText">
+                The previous tracked version shown on this page is v{entry.previousVersion}.
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="cardTitle">Useful release signal</div>
+              <div className="cardText">
+                App version changes can indicate release cadence, iteration speed, and competitive movement.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ marginTop: 80 }}>
+          <div style={{ maxWidth: 760, marginBottom: 22 }}>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#93c5fd",
+                fontWeight: 800,
+                marginBottom: 10,
+                textTransform: "uppercase",
+                letterSpacing: 1.4,
+              }}
+            >
+              Why track {entry.name}
             </div>
 
             <h2
@@ -400,8 +655,8 @@ export default async function AppDetailPage({
                 lineHeight: 1.7,
               }}
             >
-              App version changes can reveal release cadence, active iteration, and
-              product movement. For teams tracking important apps, that signal is useful.
+              Teams tracking important apps use version movement as a simple but powerful way
+              to monitor release velocity, product activity, and market momentum.
             </p>
           </div>
 
@@ -409,21 +664,21 @@ export default async function AppDetailPage({
             <div className="card">
               <div className="cardTitle">Version history visibility</div>
               <div className="cardText">
-                Keep a simple view of the current and previous tracked version for {entry.name}.
+                Keep a clear view of the latest and previous tracked version for {entry.name}.
               </div>
             </div>
 
             <div className="card">
               <div className="cardTitle">Competitor awareness</div>
               <div className="cardText">
-                Stay aware when {entry.name} ships and use that release activity as market context.
+                Stay aware when {entry.name} ships and use that movement as product and market context.
               </div>
             </div>
 
             <div className="card">
               <div className="cardTitle">Faster monitoring</div>
               <div className="cardText">
-                Let VersionWatcher do the checking instead of manually revisiting the App Store.
+                Let VersionWatcher do the checking instead of manually revisiting App Store listings.
               </div>
             </div>
           </div>
@@ -469,12 +724,12 @@ export default async function AppDetailPage({
               <div className="faqCard">
                 <div className="faqQ">What is the latest tracked iOS version of {entry.name}?</div>
                 <div className="faqA">
-                  The latest tracked version on this page is v{entry.latestVersion}.
+                  The latest tracked version shown on this page is v{entry.latestVersion}.
                 </div>
               </div>
 
               <div className="faqCard">
-                <div className="faqQ">What was the previous tracked version?</div>
+                <div className="faqQ">What was the previous tracked version of {entry.name}?</div>
                 <div className="faqA">
                   The previous tracked version shown here is v{entry.previousVersion}.
                 </div>
@@ -483,14 +738,14 @@ export default async function AppDetailPage({
               <div className="faqCard">
                 <div className="faqQ">Can I track {entry.name} automatically?</div>
                 <div className="faqA">
-                  Yes. With VersionWatcher, you can monitor {entry.name} and receive alerts when its App Store version changes.
+                  Yes. With VersionWatcher, you can monitor {entry.name} and receive alerts whenever its App Store version changes.
                 </div>
               </div>
 
               <div className="faqCard">
-                <div className="faqQ">Who is this useful for?</div>
+                <div className="faqQ">Why monitor {entry.name} app updates?</div>
                 <div className="faqA">
-                  This is useful for product managers, ASO teams, founders, agencies, and anyone monitoring important iOS apps.
+                  Monitoring {entry.name} updates helps product teams, founders, agencies, and ASO teams stay aware of release movement and market activity.
                 </div>
               </div>
             </div>
