@@ -273,6 +273,18 @@ function getApp(slug: string) {
   return apps.find((app) => app.slug === slug);
 }
 
+function getRelatedApps(currentSlug: string, currentCategory: string) {
+  const sameCategory = apps.filter(
+    (app) => app.slug !== currentSlug && app.category === currentCategory
+  );
+
+  const fallback = apps.filter(
+    (app) => app.slug !== currentSlug && app.category !== currentCategory
+  );
+
+  return [...sameCategory, ...fallback].slice(0, 4);
+}
+
 export async function generateStaticParams() {
   return apps.map((app) => ({ app: app.slug }));
 }
@@ -309,6 +321,8 @@ export default async function AppDetailPage({
   if (!entry) {
     notFound();
   }
+
+  const relatedApps = getRelatedApps(entry.slug, entry.category);
 
   return (
     <main
@@ -685,6 +699,57 @@ export default async function AppDetailPage({
         </section>
 
         <section style={{ marginTop: 80 }}>
+          <div style={{ maxWidth: 760, marginBottom: 22 }}>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#c4b5fd",
+                fontWeight: 800,
+                marginBottom: 10,
+                textTransform: "uppercase",
+                letterSpacing: 1.4,
+              }}
+            >
+              Related apps
+            </div>
+
+            <h2
+              style={{
+                fontSize: 40,
+                fontWeight: 900,
+                lineHeight: 1.1,
+                margin: "0 0 12px",
+              }}
+            >
+              Explore more tracked app pages.
+            </h2>
+          </div>
+
+          <div className="gridRelated">
+            {relatedApps.map((app) => (
+              <Link
+                key={app.slug}
+                href={`/apps/${app.slug}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <div className="relatedCard">
+                  <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 8 }}>
+                    {app.name}
+                  </div>
+                  <div style={{ color: "#94a3b8", marginBottom: 10 }}>
+                    {app.category}
+                  </div>
+                  <div style={{ color: "#cbd5e1", lineHeight: 1.7, marginBottom: 12 }}>
+                    Latest tracked version: v{app.latestVersion}
+                  </div>
+                  <div style={{ fontWeight: 800 }}>View app page →</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section style={{ marginTop: 80 }}>
           <div
             style={{
               padding: 30,
@@ -810,11 +875,31 @@ export default async function AppDetailPage({
           gap: 18px;
         }
 
+        .gridRelated {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 18px;
+        }
+
         .card {
           padding: 22px;
           border-radius: 20px;
           background: rgba(15,23,42,.38);
           border: 1px solid rgba(148,163,184,.10);
+        }
+
+        .relatedCard {
+          padding: 22px;
+          border-radius: 20px;
+          background: rgba(15,23,42,.38);
+          border: 1px solid rgba(148,163,184,.10);
+          transition: transform .18s ease, border-color .18s ease, background .18s ease;
+        }
+
+        .relatedCard:hover {
+          transform: translateY(-2px);
+          border-color: rgba(96,165,250,.24);
+          background: rgba(15,23,42,.55);
         }
 
         .cardTitle {
@@ -866,7 +951,8 @@ export default async function AppDetailPage({
 
         @media (max-width: 980px) {
           .heroGrid,
-          .grid3 {
+          .grid3,
+          .gridRelated {
             grid-template-columns: 1fr !important;
           }
         }
