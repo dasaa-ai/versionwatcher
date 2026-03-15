@@ -14,12 +14,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   const apps = [
-    "spotify",
-    "netflix",
-    "whatsapp",
-    "instagram",
-    "notion",
-  ];
+  "spotify",
+  "netflix",
+  "whatsapp",
+  "instagram",
+  "notion",
+  "youtube",
+  "tiktok",
+  "telegram",
+  "discord",
+  "slack",
+  "reddit",
+  "twitter",
+  "facebook",
+  "gmail",
+  "google-maps",
+  "amazon",
+  "uber",
+  "airbnb",
+  "dropbox",
+  "paypal",
+  "zoom"
+]
 
   const staticRoutes = staticPages.map((path) => ({
     url: `${baseUrl}${path}`,
