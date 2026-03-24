@@ -24,6 +24,125 @@ export const metadata: Metadata = {
   },
 };
 
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://www.versionwatcher.com/track-app-store-updates#webpage",
+      url: "https://www.versionwatcher.com/track-app-store-updates",
+      name: "Track App Store Updates Automatically | VersionWatcher",
+      description:
+        "Track App Store updates automatically with VersionWatcher. Monitor iOS app version changes, competitor releases, and get alerts when apps update.",
+      isPartOf: {
+        "@id": "https://www.versionwatcher.com/#website",
+      },
+      about: {
+        "@id": "https://www.versionwatcher.com/#software",
+      },
+      breadcrumb: {
+        "@id": "https://www.versionwatcher.com/track-app-store-updates#breadcrumb",
+      },
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.versionwatcher.com/track-app-store-updates#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://www.versionwatcher.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Track App Store Updates",
+          item: "https://www.versionwatcher.com/track-app-store-updates",
+        },
+      ],
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.versionwatcher.com/track-app-store-updates#softwareapplication",
+      name: "VersionWatcher",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      url: "https://www.versionwatcher.com",
+      description:
+        "VersionWatcher helps teams track App Store updates automatically, monitor iOS app version changes, and get alerts when tracked apps release new versions.",
+      publisher: {
+        "@type": "Organization",
+        "@id": "https://www.versionwatcher.com/#organization",
+        name: "VersionWatcher",
+        url: "https://www.versionwatcher.com",
+        logo: "https://www.versionwatcher.com/versionwatcher-logo.svg",
+      },
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Free",
+          price: "0",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Basic",
+          price: "9",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro",
+          price: "19",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.versionwatcher.com/track-app-store-updates#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What does VersionWatcher track?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "VersionWatcher tracks App Store version changes for iOS apps and alerts you when a tracked app ships a new release.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Who is this useful for?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "It is useful for product managers, ASO teams, agencies, founders, QA teams, and anyone monitoring competitor or client app releases.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How often are apps checked?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "VersionWatcher checks tracked apps automatically every 2 hours.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I track competitor apps?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. That is one of the main use cases. You can monitor competitor release velocity and catch version changes without checking manually.",
+          },
+        },
+      ],
+    },
+  ],
+};
+
 const useCases = [
   {
     title: "Track competitors",
@@ -110,22 +229,19 @@ export default function TrackAppStoreUpdatesPage() {
               textDecoration: "none",
             }}
           >
-            <div
+            <img
+              src="/versionwatcher-logo.svg"
+              alt="VersionWatcher logo"
+              width={42}
+              height={42}
               style={{
                 width: 42,
                 height: 42,
                 borderRadius: 14,
-                background:
-                  "linear-gradient(135deg, rgba(59,130,246,1), rgba(168,85,247,1))",
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 900,
-                color: "white",
+                display: "block",
                 boxShadow: "0 10px 30px rgba(59,130,246,.28)",
               }}
-            >
-              V
-            </div>
+            />
             <div style={{ fontSize: 20, fontWeight: 900 }}>VersionWatcher</div>
           </Link>
 
@@ -527,6 +643,11 @@ export default function TrackAppStoreUpdatesPage() {
         </section>
       </section>
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
+      />
+
       <style>{`
         .grid3 {
           display: grid;
@@ -562,3 +683,4 @@ export default function TrackAppStoreUpdatesPage() {
     </main>
   );
 }
+
