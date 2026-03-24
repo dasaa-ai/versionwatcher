@@ -1,5 +1,68 @@
 import Link from "next/link";
 
+const homepageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.versionwatcher.com/#organization",
+      name: "VersionWatcher",
+      url: "https://www.versionwatcher.com",
+      logo: "https://www.versionwatcher.com/versionwatcher-logo.svg",
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.versionwatcher.com/#website",
+      url: "https://www.versionwatcher.com",
+      name: "VersionWatcher",
+      publisher: {
+        "@id": "https://www.versionwatcher.com/#organization",
+      },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: "https://www.versionwatcher.com/apps?search={search_term_string}",
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.versionwatcher.com/#software",
+      name: "VersionWatcher",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      url: "https://www.versionwatcher.com",
+      description:
+        "VersionWatcher helps teams track App Store version changes, monitor competitor app releases, and get alerts when iOS apps update.",
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Free",
+          price: "0",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Basic",
+          price: "9",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro",
+          price: "19",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+      ],
+      publisher: {
+        "@id": "https://www.versionwatcher.com/#organization",
+      },
+    },
+  ],
+};
+
 const trackedApps = ["Spotify", "WhatsApp", "Netflix", "Telegram", "Notion"];
 
 const recentlyDetected = [
@@ -121,22 +184,19 @@ export default function HomePage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div
+            <img
+              src="/versionwatcher-logo.svg"
+              alt="VersionWatcher logo"
+              width={42}
+              height={42}
               style={{
                 width: 42,
                 height: 42,
                 borderRadius: 14,
-                background:
-                  "linear-gradient(135deg, rgba(59,130,246,1), rgba(168,85,247,1))",
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 900,
-                color: "white",
                 boxShadow: "0 10px 30px rgba(59,130,246,.28)",
+                display: "block",
               }}
-            >
-              V
-            </div>
+            />
             <div style={{ fontSize: 20, fontWeight: 900 }}>VersionWatcher</div>
           </div>
 
@@ -757,6 +817,11 @@ export default function HomePage() {
           </div>
         </footer>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }}
+      />
 
       <style>{`
         .heroGrid,
