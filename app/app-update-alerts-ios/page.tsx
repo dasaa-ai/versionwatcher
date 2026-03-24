@@ -2,9 +2,26 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "App Update Alerts for iOS Apps | VersionWatcher",
+  title: "iOS App Update Alerts | VersionWatcher",
   description:
-    "Get automatic alerts when iOS apps release new versions. Monitor competitor apps, client apps, and App Store releases with VersionWatcher.",
+    "Get iOS app update alerts with VersionWatcher. Track App Store version changes automatically and get notified when apps release new versions.",
+  alternates: {
+    canonical: "https://www.versionwatcher.com/app-update-alerts-ios",
+  },
+  openGraph: {
+    title: "iOS App Update Alerts | VersionWatcher",
+    description:
+      "Get iOS app update alerts with VersionWatcher. Track App Store version changes automatically and get notified when apps release new versions.",
+    url: "https://www.versionwatcher.com/app-update-alerts-ios",
+    siteName: "VersionWatcher",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "iOS App Update Alerts | VersionWatcher",
+    description:
+      "Get iOS app update alerts with VersionWatcher. Track App Store version changes automatically and get notified when apps release new versions.",
+  },
 };
 
 const benefits = [

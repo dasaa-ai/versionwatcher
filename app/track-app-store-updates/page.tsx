@@ -4,7 +4,24 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Track App Store Updates Automatically | VersionWatcher",
   description:
-    "Track App Store updates automatically. Monitor competitor app releases, client apps, and your own iOS app versions from one clean dashboard.",
+    "Track App Store updates automatically with VersionWatcher. Monitor iOS app version changes, competitor releases, and get alerts when apps update.",
+  alternates: {
+    canonical: "https://www.versionwatcher.com/track-app-store-updates",
+  },
+  openGraph: {
+    title: "Track App Store Updates Automatically | VersionWatcher",
+    description:
+      "Track App Store updates automatically with VersionWatcher. Monitor iOS app version changes, competitor releases, and get alerts when apps update.",
+    url: "https://www.versionwatcher.com/track-app-store-updates",
+    siteName: "VersionWatcher",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Track App Store Updates Automatically | VersionWatcher",
+    description:
+      "Track App Store updates automatically with VersionWatcher. Monitor iOS app version changes, competitor releases, and get alerts when apps update.",
+  },
 };
 
 const useCases = [

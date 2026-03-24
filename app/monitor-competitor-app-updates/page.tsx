@@ -4,7 +4,24 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Monitor Competitor App Updates | VersionWatcher",
   description:
-    "Monitor competitor app updates automatically. Track App Store version changes, release cadence, and product movement across iOS apps with VersionWatcher.",
+    "Monitor competitor app updates automatically. Track iOS version changes, release cadence, and App Store movement with VersionWatcher.",
+  alternates: {
+    canonical: "https://www.versionwatcher.com/monitor-competitor-app-updates",
+  },
+  openGraph: {
+    title: "Monitor Competitor App Updates | VersionWatcher",
+    description:
+      "Monitor competitor app updates automatically. Track iOS version changes, release cadence, and App Store movement with VersionWatcher.",
+    url: "https://www.versionwatcher.com/monitor-competitor-app-updates",
+    siteName: "VersionWatcher",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Monitor Competitor App Updates | VersionWatcher",
+    description:
+      "Monitor competitor app updates automatically. Track iOS version changes, release cadence, and App Store movement with VersionWatcher.",
+  },
 };
 
 const reasons = [

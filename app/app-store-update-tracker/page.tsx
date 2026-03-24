@@ -4,7 +4,24 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "App Store Update Tracker | VersionWatcher",
   description:
-    "Use VersionWatcher as your App Store update tracker. Monitor iOS app version changes, competitor releases, and App Store activity from one clean dashboard.",
+    "VersionWatcher is an App Store update tracker for teams. Track iOS app releases, monitor version changes, and stay aware of competitor movement.",
+  alternates: {
+    canonical: "https://www.versionwatcher.com/app-store-update-tracker",
+  },
+  openGraph: {
+    title: "App Store Update Tracker | VersionWatcher",
+    description:
+      "VersionWatcher is an App Store update tracker for teams. Track iOS app releases, monitor version changes, and stay aware of competitor movement.",
+    url: "https://www.versionwatcher.com/app-store-update-tracker",
+    siteName: "VersionWatcher",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "App Store Update Tracker | VersionWatcher",
+    description:
+      "VersionWatcher is an App Store update tracker for teams. Track iOS app releases, monitor version changes, and stay aware of competitor movement.",
+  },
 };
 
 const features = [
