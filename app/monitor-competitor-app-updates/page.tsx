@@ -24,6 +24,130 @@ export const metadata: Metadata = {
   },
 };
 
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id":
+        "https://www.versionwatcher.com/monitor-competitor-app-updates#webpage",
+      url: "https://www.versionwatcher.com/monitor-competitor-app-updates",
+      name: "Monitor Competitor App Updates | VersionWatcher",
+      description:
+        "Monitor competitor app updates automatically. Track iOS version changes, release cadence, and App Store movement with VersionWatcher.",
+      isPartOf: {
+        "@id": "https://www.versionwatcher.com/#website",
+      },
+      about: {
+        "@id": "https://www.versionwatcher.com/#software",
+      },
+      breadcrumb: {
+        "@id":
+          "https://www.versionwatcher.com/monitor-competitor-app-updates#breadcrumb",
+      },
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id":
+        "https://www.versionwatcher.com/monitor-competitor-app-updates#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://www.versionwatcher.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Monitor Competitor App Updates",
+          item: "https://www.versionwatcher.com/monitor-competitor-app-updates",
+        },
+      ],
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id":
+        "https://www.versionwatcher.com/monitor-competitor-app-updates#softwareapplication",
+      name: "VersionWatcher",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      url: "https://www.versionwatcher.com",
+      description:
+        "VersionWatcher helps teams monitor competitor app updates automatically, track iOS version changes, and stay aware of App Store release movement.",
+      publisher: {
+        "@type": "Organization",
+        "@id": "https://www.versionwatcher.com/#organization",
+        name: "VersionWatcher",
+        url: "https://www.versionwatcher.com",
+        logo: "https://www.versionwatcher.com/versionwatcher-logo.svg",
+      },
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Free",
+          price: "0",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Basic",
+          price: "9",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro",
+          price: "19",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id":
+        "https://www.versionwatcher.com/monitor-competitor-app-updates#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "How can I monitor competitor app updates?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Add the competitor app to VersionWatcher and the platform will alert you whenever the App Store version changes.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Why should I track competitor app releases?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Competitor releases are a useful signal for product movement, release velocity, and market activity. They help product teams stay aware without checking manually.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can agencies use this for client monitoring?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Agencies can track competitors, client portfolios, and category leaders from one dashboard.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Does this work for iOS apps on the App Store?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. VersionWatcher is built to monitor App Store version changes for iOS apps.",
+          },
+        },
+      ],
+    },
+  ],
+};
+
 const reasons = [
   {
     title: "Track release velocity",
@@ -113,23 +237,20 @@ export default function MonitorCompetitorAppUpdatesPage() {
               color: "#f8fafc",
             }}
           >
-            <div
+            <img
+              src="/versionwatcher-logo.svg"
+              alt="VersionWatcher logo"
+              width={42}
+              height={42}
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                background:
-                  "linear-gradient(135deg, rgba(59,130,246,1), rgba(168,85,247,1))",
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 900,
+                width: 42,
+                height: 42,
+                borderRadius: 14,
+                display: "block",
+                boxShadow: "0 10px 30px rgba(59,130,246,.28)",
               }}
-            >
-              V
-            </div>
-            <div style={{ fontWeight: 900, fontSize: 20 }}>
-              VersionWatcher
-            </div>
+            />
+            <div style={{ fontWeight: 900, fontSize: 20 }}>VersionWatcher</div>
           </Link>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -141,6 +262,7 @@ export default function MonitorCompetitorAppUpdatesPage() {
                 border: "1px solid rgba(148,163,184,.18)",
                 color: "#e2e8f0",
                 textDecoration: "none",
+                background: "rgba(15,23,42,.42)",
               }}
             >
               Login
@@ -203,6 +325,63 @@ export default function MonitorCompetitorAppUpdatesPage() {
 
             <p
               style={{
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+                maxWidth: 760,
+                marginBottom: 18,
+              }}
+            >
+              If you want to monitor competitor app updates automatically,{" "}
+              <Link
+                href="/"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                VersionWatcher
+              </Link>{" "}
+              helps you track iOS app version changes without checking the App Store manually. You can follow competitor release cadence, detect new versions quickly, and stay aware of market movement.
+            </p>
+
+            <p
+              style={{
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+                maxWidth: 760,
+                marginBottom: 20,
+              }}
+            >
+              Teams use VersionWatcher to monitor competitor apps, watch category leaders, and keep up with App Store release activity across important iOS products.
+            </p>
+
+            <p
+              style={{
+                color: "#cbd5e1",
+                marginBottom: 20,
+                maxWidth: 760,
+                lineHeight: 1.7,
+                fontSize: 16,
+              }}
+            >
+              You can explore detailed tracking pages like{" "}
+              <Link
+                href="/apps/spotify"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Spotify version tracker
+              </Link>{" "}
+              or{" "}
+              <Link
+                href="/apps/notion"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Notion version tracker
+              </Link>
+              .
+            </p>
+
+            <p
+              style={{
                 fontSize: 20,
                 lineHeight: 1.65,
                 maxWidth: 760,
@@ -260,10 +439,28 @@ export default function MonitorCompetitorAppUpdatesPage() {
                 lineHeight: 1.7,
               }}
             >
-              Monitor apps like <strong style={{ color: "#f8fafc" }}>Spotify</strong>,{" "}
-              <strong style={{ color: "#f8fafc" }}>Instagram</strong>,{" "}
-              <strong style={{ color: "#f8fafc" }}>Netflix</strong>, and other
-              iOS competitors from one dashboard.
+              Monitor apps like{" "}
+              <Link
+                href="/apps/spotify"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Spotify
+              </Link>
+              ,{" "}
+              <Link
+                href="/apps/instagram"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Instagram
+              </Link>
+              ,{" "}
+              <Link
+                href="/apps/netflix"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Netflix
+              </Link>
+              , and other iOS competitors from one dashboard.
             </div>
           </div>
 
@@ -352,10 +549,7 @@ export default function MonitorCompetitorAppUpdatesPage() {
 
           <div className="grid3">
             {examples.map((item) => (
-              <div
-                key={item.title}
-                className="card"
-              >
+              <div key={item.title} className="card">
                 <div
                   style={{
                     display: "inline-flex",
@@ -534,6 +728,11 @@ export default function MonitorCompetitorAppUpdatesPage() {
           </div>
         </section>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
+      />
 
       <style>{`
         .grid3 {
