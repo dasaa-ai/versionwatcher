@@ -24,6 +24,125 @@ export const metadata: Metadata = {
   },
 };
 
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://www.versionwatcher.com/app-store-update-tracker#webpage",
+      url: "https://www.versionwatcher.com/app-store-update-tracker",
+      name: "App Store Update Tracker | VersionWatcher",
+      description:
+        "VersionWatcher is an App Store update tracker for teams. Track iOS app releases, monitor version changes, and stay aware of competitor movement.",
+      isPartOf: {
+        "@id": "https://www.versionwatcher.com/#website",
+      },
+      about: {
+        "@id": "https://www.versionwatcher.com/#software",
+      },
+      breadcrumb: {
+        "@id": "https://www.versionwatcher.com/app-store-update-tracker#breadcrumb",
+      },
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.versionwatcher.com/app-store-update-tracker#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://www.versionwatcher.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "App Store Update Tracker",
+          item: "https://www.versionwatcher.com/app-store-update-tracker",
+        },
+      ],
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.versionwatcher.com/app-store-update-tracker#softwareapplication",
+      name: "VersionWatcher",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      url: "https://www.versionwatcher.com",
+      description:
+        "VersionWatcher helps teams track App Store updates automatically, monitor iOS app version changes, and stay aware of competitor and market movement.",
+      publisher: {
+        "@type": "Organization",
+        "@id": "https://www.versionwatcher.com/#organization",
+        name: "VersionWatcher",
+        url: "https://www.versionwatcher.com",
+        logo: "https://www.versionwatcher.com/versionwatcher-logo.svg",
+      },
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Free",
+          price: "0",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Basic",
+          price: "9",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro",
+          price: "19",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.versionwatcher.com/app-store-update-tracker#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What is an App Store update tracker?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "An App Store update tracker is a tool that monitors iOS app version changes and lets you know when an app releases a new version.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How does VersionWatcher work?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "You add an iOS app to your watchlist, and VersionWatcher checks for App Store version changes automatically every two hours.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I track competitor apps with it?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. VersionWatcher is especially useful for tracking competitor apps and understanding their release cadence.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Who is this useful for?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "It is useful for product managers, ASO teams, founders, QA teams, and agencies monitoring client or competitor apps.",
+          },
+        },
+      ],
+    },
+  ],
+};
+
 const features = [
   {
     title: "Track App Store releases automatically",
@@ -128,20 +247,19 @@ export default function AppStoreUpdateTrackerPage() {
               color: "#f8fafc",
             }}
           >
-            <div
+            <img
+              src="/versionwatcher-logo.svg"
+              alt="VersionWatcher logo"
+              width={42}
+              height={42}
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                background:
-                  "linear-gradient(135deg, rgba(59,130,246,1), rgba(168,85,247,1))",
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 900,
+                width: 42,
+                height: 42,
+                borderRadius: 14,
+                display: "block",
+                boxShadow: "0 10px 30px rgba(59,130,246,.28)",
               }}
-            >
-              V
-            </div>
+            />
             <div style={{ fontWeight: 900, fontSize: 20 }}>VersionWatcher</div>
           </Link>
 
@@ -154,6 +272,7 @@ export default function AppStoreUpdateTrackerPage() {
                 border: "1px solid rgba(148,163,184,.18)",
                 color: "#e2e8f0",
                 textDecoration: "none",
+                background: "rgba(15,23,42,.42)",
               }}
             >
               Login
@@ -216,6 +335,63 @@ export default function AppStoreUpdateTrackerPage() {
 
             <p
               style={{
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+                maxWidth: 760,
+                marginBottom: 18,
+              }}
+            >
+              If you want an App Store update tracker,{" "}
+              <Link
+                href="/"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                VersionWatcher
+              </Link>{" "}
+              helps you monitor iOS app releases and version changes automatically. Instead of checking App Store listings manually, you can follow updates across competitor apps, category leaders, client portfolios, and your own products from one place.
+            </p>
+
+            <p
+              style={{
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+                maxWidth: 760,
+                marginBottom: 20,
+              }}
+            >
+              Teams use VersionWatcher as an App Store update tracker to stay aware of market movement, release cadence, and important changes in tracked iOS apps.
+            </p>
+
+            <p
+              style={{
+                color: "#cbd5e1",
+                marginBottom: 20,
+                maxWidth: 760,
+                lineHeight: 1.7,
+                fontSize: 16,
+              }}
+            >
+              You can explore detailed tracking pages like{" "}
+              <Link
+                href="/apps/spotify"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Spotify version tracker
+              </Link>{" "}
+              or{" "}
+              <Link
+                href="/apps/notion"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Notion version tracker
+              </Link>
+              .
+            </p>
+
+            <p
+              style={{
                 fontSize: 20,
                 lineHeight: 1.65,
                 maxWidth: 760,
@@ -273,10 +449,28 @@ export default function AppStoreUpdateTrackerPage() {
                 lineHeight: 1.7,
               }}
             >
-              Track apps like <strong style={{ color: "#f8fafc" }}>Spotify</strong>,{" "}
-              <strong style={{ color: "#f8fafc" }}>Netflix</strong>,{" "}
-              <strong style={{ color: "#f8fafc" }}>Notion</strong>, and other
-              iOS apps from one place.
+              Track apps like{" "}
+              <Link
+                href="/apps/spotify"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Spotify
+              </Link>
+              ,{" "}
+              <Link
+                href="/apps/netflix"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Netflix
+              </Link>
+              ,{" "}
+              <Link
+                href="/apps/notion"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Notion
+              </Link>
+              , and other iOS apps from one place.
             </div>
           </div>
 
@@ -533,6 +727,11 @@ export default function AppStoreUpdateTrackerPage() {
           </div>
         </section>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
+      />
 
       <style>{`
         .grid3 {
