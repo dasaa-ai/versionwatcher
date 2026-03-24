@@ -316,6 +316,67 @@ export default function TrackAppStoreUpdatesPage() {
 
             <p
               style={{
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+                maxWidth: 760,
+                marginBottom: 18,
+              }}
+            >
+              If you want to track App Store updates automatically,{" "}
+              <Link
+                href="/"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                VersionWatcher
+              </Link>{" "}
+              helps you monitor iOS app version changes in real time. Instead of
+              manually checking the App Store, you can track when apps update,
+              detect new releases instantly, and stay aware of competitor activity.
+            </p>
+
+            <p
+              style={{
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+                maxWidth: 760,
+                marginBottom: 20,
+              }}
+            >
+              Teams use VersionWatcher as an App Store update tracker to monitor
+              competitor apps, follow release cadence, and get alerts when tracked
+              apps ship a new version.
+            </p>
+
+            <p
+              style={{
+                color: "#cbd5e1",
+                marginBottom: 20,
+                maxWidth: 760,
+                lineHeight: 1.7,
+                fontSize: 16,
+              }}
+            >
+              You can explore detailed version tracking pages like{" "}
+              <Link
+                href="/apps/spotify"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Spotify version tracker
+              </Link>{" "}
+              or{" "}
+              <Link
+                href="/apps/notion"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Notion version tracker
+              </Link>
+              .
+            </p>
+
+            <p
+              style={{
                 fontSize: 20,
                 lineHeight: 1.65,
                 color: "rgba(226,232,240,.86)",
@@ -337,10 +398,28 @@ export default function TrackAppStoreUpdatesPage() {
                 maxWidth: 760,
               }}
             >
-              Track apps like <strong style={{ color: "#f8fafc" }}>Spotify</strong>,{" "}
-              <strong style={{ color: "#f8fafc" }}>WhatsApp</strong>,{" "}
-              <strong style={{ color: "#f8fafc" }}>Netflix</strong>, and millions of
-              iOS apps.
+              Track apps like{" "}
+              <Link
+                href="/apps/spotify"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Spotify
+              </Link>
+              ,{" "}
+              <Link
+                href="/apps/whatsapp"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                WhatsApp
+              </Link>
+              ,{" "}
+              <Link
+                href="/apps/netflix"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Netflix
+              </Link>
+              , and millions of iOS apps.
             </div>
 
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
@@ -431,8 +510,12 @@ export default function TrackAppStoreUpdatesPage() {
                       border: "1px solid rgba(148,163,184,.08)",
                     }}
                   >
-                    <div style={{ fontWeight: 800, marginBottom: 6 }}>{item.title}</div>
-                    <div style={{ color: "#94a3b8", lineHeight: 1.6 }}>{item.text}</div>
+                    <div style={{ fontWeight: 800, marginBottom: 6 }}>
+                      {item.title}
+                    </div>
+                    <div style={{ color: "#94a3b8", lineHeight: 1.6 }}>
+                      {item.text}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -490,8 +573,8 @@ export default function TrackAppStoreUpdatesPage() {
             <div className="card">
               <div className="cardTitle">ASO teams</div>
               <div className="cardText">
-                Catch version changes the moment they happen and keep your market view
-                current.
+                Catch version changes the moment they happen and keep your market
+                view current.
               </div>
             </div>
 
