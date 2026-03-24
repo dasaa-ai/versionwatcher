@@ -24,6 +24,125 @@ export const metadata: Metadata = {
   },
 };
 
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://www.versionwatcher.com/ios-app-version-tracker#webpage",
+      url: "https://www.versionwatcher.com/ios-app-version-tracker",
+      name: "iOS App Version Tracker | VersionWatcher",
+      description:
+        "Use VersionWatcher as an iOS app version tracker. Monitor version history, detect app releases, and get alerts when tracked apps update.",
+      isPartOf: {
+        "@id": "https://www.versionwatcher.com/#website",
+      },
+      about: {
+        "@id": "https://www.versionwatcher.com/#software",
+      },
+      breadcrumb: {
+        "@id": "https://www.versionwatcher.com/ios-app-version-tracker#breadcrumb",
+      },
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.versionwatcher.com/ios-app-version-tracker#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://www.versionwatcher.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "iOS App Version Tracker",
+          item: "https://www.versionwatcher.com/ios-app-version-tracker",
+        },
+      ],
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.versionwatcher.com/ios-app-version-tracker#softwareapplication",
+      name: "VersionWatcher",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      url: "https://www.versionwatcher.com",
+      description:
+        "VersionWatcher helps teams track iOS app versions automatically, monitor App Store version changes, and get alerts when tracked apps ship new releases.",
+      publisher: {
+        "@type": "Organization",
+        "@id": "https://www.versionwatcher.com/#organization",
+        name: "VersionWatcher",
+        url: "https://www.versionwatcher.com",
+        logo: "https://www.versionwatcher.com/versionwatcher-logo.svg",
+      },
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Free",
+          price: "0",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Basic",
+          price: "9",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro",
+          price: "19",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.versionwatcher.com/ios-app-version-tracker#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What is an iOS app version tracker?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "An iOS app version tracker is a tool that monitors App Store version changes and alerts you when a tracked app publishes a new release.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Why track iOS app versions?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Tracking iOS app versions helps you understand release cadence, product movement, and competitor activity without checking manually.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I track competitor versions?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. VersionWatcher is ideal for monitoring competitor app versions and staying aware of important App Store changes.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How often are apps checked?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "VersionWatcher checks tracked apps every two hours.",
+          },
+        },
+      ],
+    },
+  ],
+};
+
 const benefits = [
   {
     title: "Track version changes automatically",
@@ -128,20 +247,19 @@ export default function IOSAppVersionTrackerPage() {
               color: "#f8fafc",
             }}
           >
-            <div
+            <img
+              src="/versionwatcher-logo.svg"
+              alt="VersionWatcher logo"
+              width={42}
+              height={42}
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                background:
-                  "linear-gradient(135deg, rgba(59,130,246,1), rgba(168,85,247,1))",
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 900,
+                width: 42,
+                height: 42,
+                borderRadius: 14,
+                display: "block",
+                boxShadow: "0 10px 30px rgba(59,130,246,.28)",
               }}
-            >
-              V
-            </div>
+            />
             <div style={{ fontWeight: 900, fontSize: 20 }}>VersionWatcher</div>
           </Link>
 
@@ -154,6 +272,7 @@ export default function IOSAppVersionTrackerPage() {
                 border: "1px solid rgba(148,163,184,.18)",
                 color: "#e2e8f0",
                 textDecoration: "none",
+                background: "rgba(15,23,42,.42)",
               }}
             >
               Login
@@ -216,6 +335,63 @@ export default function IOSAppVersionTrackerPage() {
 
             <p
               style={{
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+                maxWidth: 760,
+                marginBottom: 18,
+              }}
+            >
+              If you want an iOS app version tracker,{" "}
+              <Link
+                href="/"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                VersionWatcher
+              </Link>{" "}
+              helps you monitor App Store version changes automatically. You can track iOS app versions across competitors, category leaders, client portfolios, and your own releases without checking app pages manually.
+            </p>
+
+            <p
+              style={{
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+                maxWidth: 760,
+                marginBottom: 20,
+              }}
+            >
+              Teams use VersionWatcher to detect app releases, follow version history, and turn App Store version changes into a signal for product and market monitoring.
+            </p>
+
+            <p
+              style={{
+                color: "#cbd5e1",
+                marginBottom: 20,
+                maxWidth: 760,
+                lineHeight: 1.7,
+                fontSize: 16,
+              }}
+            >
+              You can explore detailed tracking pages like{" "}
+              <Link
+                href="/apps/spotify"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Spotify version tracker
+              </Link>{" "}
+              or{" "}
+              <Link
+                href="/apps/notion"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Notion version tracker
+              </Link>
+              .
+            </p>
+
+            <p
+              style={{
                 fontSize: 20,
                 lineHeight: 1.65,
                 maxWidth: 760,
@@ -273,10 +449,28 @@ export default function IOSAppVersionTrackerPage() {
                 lineHeight: 1.7,
               }}
             >
-              Monitor apps like <strong style={{ color: "#f8fafc" }}>Spotify</strong>,{" "}
-              <strong style={{ color: "#f8fafc" }}>WhatsApp</strong>,{" "}
-              <strong style={{ color: "#f8fafc" }}>Notion</strong>, and other
-              important iOS apps from one dashboard.
+              Monitor apps like{" "}
+              <Link
+                href="/apps/spotify"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Spotify
+              </Link>
+              ,{" "}
+              <Link
+                href="/apps/whatsapp"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                WhatsApp
+              </Link>
+              ,{" "}
+              <Link
+                href="/apps/notion"
+                style={{ color: "#93c5fd", textDecoration: "underline" }}
+              >
+                Notion
+              </Link>
+              , and other important iOS apps from one dashboard.
             </div>
           </div>
 
@@ -532,6 +726,11 @@ export default function IOSAppVersionTrackerPage() {
           </div>
         </section>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
+      />
 
       <style>{`
         .grid3 {
