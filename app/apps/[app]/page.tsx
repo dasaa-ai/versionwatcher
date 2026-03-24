@@ -285,6 +285,111 @@ function getRelatedApps(currentSlug: string, currentCategory: string) {
   return [...sameCategory, ...fallback].slice(0, 4);
 }
 
+function getAppPageUrl(slug: string) {
+  return `https://www.versionwatcher.com/apps/${slug}`;
+}
+
+function getAppSchema(entry: AppEntry) {
+  const pageUrl = getAppPageUrl(entry.slug);
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${pageUrl}#software`,
+        name: entry.name,
+        applicationCategory: entry.category,
+        operatingSystem: "iOS",
+        softwareVersion: entry.latestVersion,
+        description: entry.summary,
+        url: pageUrl,
+        publisher: {
+          "@type": "Organization",
+          name: "VersionWatcher",
+          url: "https://www.versionwatcher.com",
+          logo: "https://www.versionwatcher.com/versionwatcher-logo.svg",
+        },
+        author: {
+          "@type": "Organization",
+          name: entry.developer,
+        },
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "EUR",
+          url: "https://www.versionwatcher.com/signup",
+        },
+        identifier: entry.appStoreId,
+        releaseNotes:
+          `Latest tracked version: ${entry.latestVersion}. Previous tracked version: ${entry.previousVersion}. Latest tracked release date: ${entry.releaseDate}.`,
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${pageUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: "https://www.versionwatcher.com",
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Apps",
+            item: "https://www.versionwatcher.com/apps",
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: entry.name,
+            item: pageUrl,
+          },
+        ],
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${pageUrl}#faq`,
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: `What is the latest tracked iOS version of ${entry.name}?`,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: `The latest tracked version shown on this page is v${entry.latestVersion}.`,
+            },
+          },
+          {
+            "@type": "Question",
+            name: `What was the previous tracked version of ${entry.name}?`,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: `The previous tracked version shown here is v${entry.previousVersion}.`,
+            },
+          },
+          {
+            "@type": "Question",
+            name: `Can I track ${entry.name} automatically?`,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: `Yes. With VersionWatcher, you can monitor ${entry.name} and receive alerts whenever its App Store version changes.`,
+            },
+          },
+          {
+            "@type": "Question",
+            name: `Why monitor ${entry.name} app updates?`,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: `Monitoring ${entry.name} updates helps product teams, founders, agencies, and ASO teams stay aware of release movement and market activity.`,
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
+
 export async function generateStaticParams() {
   return apps.map((app) => ({ app: app.slug }));
 }
@@ -304,9 +409,26 @@ export async function generateMetadata({
     };
   }
 
+  const pageUrl = getAppPageUrl(entry.slug);
+
   return {
     title: `${entry.name} Latest iOS Version Tracker | VersionWatcher`,
     description: `Track ${entry.name} App Store updates automatically. Latest version, previous version, release monitoring, and competitor tracking with VersionWatcher.`,
+    alternates: {
+      canonical: pageUrl,
+    },
+    openGraph: {
+      title: `${entry.name} Latest iOS Version Tracker | VersionWatcher`,
+      description: `Track ${entry.name} App Store updates automatically. Latest version, previous version, release monitoring, and competitor tracking with VersionWatcher.`,
+      url: pageUrl,
+      siteName: "VersionWatcher",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${entry.name} Latest iOS Version Tracker | VersionWatcher`,
+      description: `Track ${entry.name} App Store updates automatically. Latest version, previous version, release monitoring, and competitor tracking with VersionWatcher.`,
+    },
   };
 }
 
@@ -323,6 +445,7 @@ export default async function AppDetailPage({
   }
 
   const relatedApps = getRelatedApps(entry.slug, entry.category);
+  const appSchema = getAppSchema(entry);
 
   return (
     <main
@@ -360,20 +483,19 @@ export default async function AppDetailPage({
               color: "#f8fafc",
             }}
           >
-            <div
+            <img
+              src="/versionwatcher-logo.svg"
+              alt="VersionWatcher logo"
+              width={40}
+              height={40}
               style={{
                 width: 40,
                 height: 40,
                 borderRadius: 12,
-                background:
-                  "linear-gradient(135deg, rgba(59,130,246,1), rgba(168,85,247,1))",
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 900,
+                display: "block",
+                boxShadow: "0 10px 30px rgba(59,130,246,.28)",
               }}
-            >
-              V
-            </div>
+            />
             <div style={{ fontWeight: 900, fontSize: 20 }}>VersionWatcher</div>
           </Link>
 
@@ -867,6 +989,11 @@ export default async function AppDetailPage({
           </div>
         </section>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }}
+      />
 
       <style>{`
         .grid3 {
